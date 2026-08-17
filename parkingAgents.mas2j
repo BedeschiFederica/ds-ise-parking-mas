@@ -1,0 +1,20 @@
+MAS parking {
+
+	infrastructure: Jade
+
+    agents:
+        d1 driver_agent[beliefs="", goals="start"] at "drivers";
+        d2 driver_agent[beliefs="", goals="start"] at "drivers";
+
+        a1 area_agent[beliefs="", goals="start"] at "area1";
+        p1 parking_agent[beliefs="", goals="start"] at "area1";
+        p2 parking_agent[beliefs="", goals="start"] at "area1";
+
+        a2 area_agent[beliefs="", goals="start"] at "area2";
+        p3 parking_agent[beliefs="", goals="start"] at "area2";
+        p4 parking_agent[beliefs="", goals="start"] at "area2";
+        p5 parking_agent[beliefs="", goals="start"] at "area2";
+
+	aslSourcePath:
+		"src/main/asl";
+}
