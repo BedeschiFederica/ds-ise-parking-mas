@@ -15,15 +15,11 @@ bin/
 # Log files
 *.log
 
-# Package Files
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
 # Gradle
 .gradle/
 build/
+
+# JADE
+APDescription.txt
+MTPs-Main-Container.txt
+*.stop*
