@@ -23,7 +23,13 @@ sourceSets {
 dependencies {
     implementation("io.github.jason-lang:jason-interpreter:3.2.1") // Java 17
     implementation("com.fasterxml.jackson.core:jackson-databind:2.21.5")
-    testImplementation("junit", "junit", "4.13.2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.register<JavaExec>("runParkingMain") {
