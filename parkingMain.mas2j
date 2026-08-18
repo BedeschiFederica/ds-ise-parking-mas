@@ -1,3 +1,4 @@
 MAS parking {
 	infrastructure: Jade
+    environment: parking.ParkingEnvironment("city.json")
 }
