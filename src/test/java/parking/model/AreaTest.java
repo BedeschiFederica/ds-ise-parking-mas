@@ -2,9 +2,7 @@ package parking.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 public class AreaTest {
 
@@ -16,6 +14,12 @@ public class AreaTest {
     @BeforeEach
     public void init() {
         this.area = new Area("a1", new Position(0, 0), new Position(2, 2));
+    }
+
+    @Test
+    @DisplayName("Test that creating an area with invalid vertices fails")
+    public void testFailAreaCreationWithInvalidVertices() {
+        assertThrows(IllegalArgumentException.class, () -> new Area("a1", new Position(2, 2), new Position(0, 0)));
     }
 
     @Test
