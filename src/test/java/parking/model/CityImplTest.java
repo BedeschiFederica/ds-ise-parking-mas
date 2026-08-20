@@ -2,15 +2,15 @@ package parking.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.Map;
 
-public class CityTest {
+public class CityImplTest {
 
+    private static final int WIDTH = 3;
+    private static final int HEIGHT = 3;
     private static final String AREA_ID = "a1";
     private static final String PARKING_LOT_ID = "p1";
     private static final String DRIVER_ID = "d1";
@@ -18,16 +18,27 @@ public class CityTest {
     private static final Position DRIVER_POSITION = new Position(1, 1);
     private static final String NON_EXISTENT_PARKING_LOT_ID = "p2";
     private static final String NON_EXISTENT_DRIVER_ID = "d2";
+    private static final Position INVALID_POSITION = new Position(3, 3);
 
     private City city;
 
     @BeforeEach
     public void init() {
-        this.city = new City(3, 3,
+        this.city = new CityImpl(WIDTH, HEIGHT,
                 List.of(new Area(AREA_ID, new Position(0, 0), new Position(2, 2))),
                 Map.of(PARKING_LOT_ID, PARKING_LOT_POSITION),
                 Map.of(DRIVER_ID, DRIVER_POSITION)
         );
+    }
+
+    @Test
+    @DisplayName("Test that creating a city with an invalid position fails")
+    public void testFailCityCreationWithInvalidPosition() {
+        assertThrows(IllegalArgumentException.class, () -> new CityImpl(WIDTH, HEIGHT,
+                List.of(new Area(AREA_ID, new Position(0, 0), INVALID_POSITION)),
+                Map.of(PARKING_LOT_ID, PARKING_LOT_POSITION),
+                Map.of(DRIVER_ID, DRIVER_POSITION)
+        ));
     }
 
     @Test
@@ -64,5 +75,20 @@ public class CityTest {
     @DisplayName("Test that the city fails to return the position for a non-existent parking lot")
     public void testCannotGetPositionOfUnexistentParkingLot() {
         assertThrows(IllegalArgumentException.class, () -> this.city.getParkingLotPosition(NON_EXISTENT_PARKING_LOT_ID));
+    }
+
+    @Test
+    @DisplayName("Test that the city moves a driver correctly")
+    public void testDriverMovesCorrectly() {
+        assertTrue(this.city.moveDriver(DRIVER_ID, Direction.SOUTH));
+        assertEquals(new Position(DRIVER_POSITION.x() + 1, DRIVER_POSITION.y()),
+                this.city.getDriverPosition(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that the city prevents a driver from moving out of bounds")
+    public void testDriverCannotMoveOutOfCityBounds() {
+        assertTrue(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
+        assertFalse(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
     }
 }

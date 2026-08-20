@@ -4,27 +4,22 @@ import jason.asSyntax.Literal;
 import jason.asSyntax.Structure;
 import jason.environment.Environment;
 import parking.model.City;
-import parking.model.CityLoader;
+import parking.model.CityLoaderImpl;
+import parking.model.Direction;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static parking.model.Direction.*;
-
 public class ParkingEnvironment extends Environment {
 
-    // action literals
-    public static final Literal moveNorth = Literal.parseLiteral("move("+ NORTH.name().toLowerCase() + ")");
-    public static final Literal moveSouth = Literal.parseLiteral("move("+ SOUTH.name().toLowerCase() + ")");
-    public static final Literal moveEast = Literal.parseLiteral("move("+ EAST.name().toLowerCase() + ")");
-    public static final Literal moveWest = Literal.parseLiteral("move("+ WEST.name().toLowerCase() + ")");
+    private static final String MOVE_ACTION = "move";
 
     private City city;
 
     @Override
     public void init(final String[] args) {
-        this.city = new CityLoader().load(args[0]);
+        this.city = new CityLoaderImpl().load(args[0]);
     }
 
     @Override
@@ -57,7 +52,11 @@ public class ParkingEnvironment extends Environment {
     }
 
     @Override
-    public boolean executeAction(final String ag, final Structure action) {
-        return true;
+    public boolean executeAction(final String agentName, final Structure action) {
+        if (action.getFunctor().equals(MOVE_ACTION)) {
+            return this.city.moveDriver(agentName, Direction.fromString(action.getTerm(0).toString()));
+        } else {
+            throw new IllegalArgumentException("Unknown action: " + action);
+        }
     }
 }

@@ -1,47 +1,12 @@
 package parking.model;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
+public interface CityLoader {
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class CityLoader {
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    public City load(final String resource) {
-        try (InputStream input = CityLoader.class.getClassLoader().getResourceAsStream(resource)) {
-            if (input == null) {
-                throw new IllegalArgumentException("City configuration not found: " + resource);
-            }
-            return this.mapper.readValue(input, CityJson.class).toCity();
-        } catch (final IOException e) {
-            throw new RuntimeException("Unable to load city configuration: " + resource, e);
-        }
-    }
-
-    private record CityJson(int width, int height, List<AreaJson> areas, List<ParkingLotJson> parkingLots,
-                            List<DriverJson> drivers) {
-        public City toCity() {
-            return new City(
-                    this.width,
-                    this.height,
-                    this.areas.stream().map(a -> new Area(a.id, new Position(a.x1, a.y1), new Position(a.x2, a.y2)))
-                            .toList(),
-                    this.parkingLots.stream().collect(Collectors.toMap(
-                            p -> p.id,
-                            p -> new Position(p.x, p.y)
-                    )),
-                    this.drivers.stream().collect(Collectors.toMap(
-                            d -> d.id,
-                            d -> new Position(d.x, d.y)
-                    ))
-            );
-        }
-    }
-
-    private record AreaJson(String id, int x1, int y1, int x2, int y2) {}
-    private record ParkingLotJson(String id, int x, int y) {}
-    private record DriverJson(String id, int x, int y) {}
+    /**
+     * Loads a city configuration from the specified JSON file.
+     *
+     * @param jsonFile the JSON file from which to load the city configuration
+     * @return the loaded city configuration.
+     */
+    City load(final String jsonFile);
 }
