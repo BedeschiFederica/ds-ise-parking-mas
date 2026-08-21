@@ -14,6 +14,8 @@ import java.util.List;
 public class ParkingEnvironment extends Environment {
 
     private static final String MOVE_ACTION = "move";
+    private static final String AUTHORIZE_ACTION = "authorize";
+    private static final String ENTER_ACTION = "enter";
 
     private City city;
 
@@ -53,10 +55,14 @@ public class ParkingEnvironment extends Environment {
 
     @Override
     public boolean executeAction(final String agentName, final Structure action) {
-        if (action.getFunctor().equals(MOVE_ACTION)) {
-            return this.city.moveDriver(agentName, Direction.fromString(action.getTerm(0).toString()));
-        } else {
-            throw new IllegalArgumentException("Unknown action: " + action);
-        }
+        return switch (action.getFunctor()) {
+            case MOVE_ACTION -> this.city.moveDriver(agentName, Direction.fromString(action.getTerm(0).toString()));
+            case AUTHORIZE_ACTION -> {
+                this.city.authorizeDriver(action.getTerm(0).toString(), agentName);
+                yield true;
+            }
+            case ENTER_ACTION -> this.city.enter(agentName, action.getTerm(0).toString());
+            default -> throw new IllegalArgumentException("Unknown action: " + action);
+        };
     }
 }
