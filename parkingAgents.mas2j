@@ -7,13 +7,13 @@ MAS parking {
         d2 driver_agent[beliefs="", goals="start"] at "drivers";
 
         a1 area_agent[beliefs="parking(p1),parking(p2)", goals="start"] at "area1";
-        p1 parking_agent[beliefs="capacity(10)", goals="start"] at "area1";
-        p2 parking_agent[beliefs="capacity(5)", goals="start"] at "area1";
+        p1 parking_agent[beliefs="available(10)", goals="start"] at "area1";
+        p2 parking_agent[beliefs="available(5)", goals="start"] at "area1";
 
         a2 area_agent[beliefs="parking(p3),parking(p4),parking(p5)", goals="start"] at "area2";
-        p3 parking_agent[beliefs="capacity(8)", goals="start"] at "area2";
-        p4 parking_agent[beliefs="capacity(12)", goals="start"] at "area2";
-        p5 parking_agent[beliefs="capacity(6)", goals="start"] at "area2";
+        p3 parking_agent[beliefs="available(8)", goals="start"] at "area2";
+        p4 parking_agent[beliefs="available(12)", goals="start"] at "area2";
+        p5 parking_agent[beliefs="available(6)", goals="start"] at "area2";
 
 	aslSourcePath:
 		"src/main/asl";

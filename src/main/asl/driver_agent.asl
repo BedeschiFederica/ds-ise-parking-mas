@@ -24,7 +24,6 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 +!start <-
     .my_name(N);
     .print("Driver agent ", N, " started");
-    .wait(2000);
     !request_parking.
 
 // ========== Request parking to Area Agent ==========
@@ -35,18 +34,25 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     .send(A, askOne, available_parking(P, Position), Answer, 3000);
     !process_parking_response(Answer).
 
-+!process_parking_response(timeout) <-
-    .print("Area agent unavailable"). // TODO to handle
-
 +!process_parking_response(available_parking(P, Position)) <-
     .print("Going to parking lot ", P, " at ", Position);
     !go_to_parking_lot(P, Position).
 
++!process_parking_response(timeout) <- // TODO to improve
+    .print("Area agent unavailable; retrying in 0.5s");
+    .wait(500);
+    !request_parking.
+
++!process_parking_response(Error) <- // TODO to improve
+    .print("Error occurred while contacting area agent: ", Error);
+    .wait(500);
+    !request_parking.
+
 // ========== Go to parking lot ==========
 
 +!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & adjacent(position(X, Y), position(Xp, Yp)) <-
-    .print("Arrived near parking lot ", P, " at ", position(Xp, Yp), "; current position: ", position(X, Y)).
-    // TODO
+    .print("Arrived near parking lot ", P, " at ", position(Xp, Yp), "; current position: ", position(X, Y));
+    !request_entry(P).
 
 +!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & X > Xp <-
     move(north);
@@ -67,3 +73,39 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     move(west);
     .print("Going west");
     !go_to_parking_lot(P, position(Xp, Yp)).
+
+-!go_to_parking_lot(P, position(Xp, Yp)) <-
+    .print("Failed to move to parking lot ", P, " at ", position(Xp, Yp), "; retrying in 0.5s");
+    .wait(500);
+    !go_to_parking_lot(P, position(Xp, Yp)).
+
+// ========== Enter parking lot ==========
+
++!request_entry(P) <-
+    .print("Requesting entry to parking lot ", P);
+    .send(P, askOne, entry_status(Status), Answer, 3000);
+    !process_entry_response(Answer, P).
+
++!process_entry_response(entry_status(granted), P) <-
+    .print("Entering parking lot ", P);
+    enter(P);
+    .print("Successfully entered parking lot ", P).
+
+-!process_entry_response(entry_status(granted), P) <-
+    .print("Failed to enter parking lot ", P, "; retrying in 0.5s");
+    .wait(500);
+    !process_entry_response(entry_status(granted), P).
+
++!process_entry_response(entry_status(denied), P) <-
+    .print("Entry denied for parking lot ", P);
+    !request_parking.
+
++!process_entry_response(timeout, P) <- // TODO to improve
+    .print("Parking agent ", P, " unavailable; retrying in 0.5s");
+    .wait(500);
+    !request_entry(P).
+
++!process_entry_response(Error, P) <- // TODO to improve
+    .print("Error occurred while contacting parking agent ", P, ": ", Error);
+    .wait(500);
+    !request_entry(P).
