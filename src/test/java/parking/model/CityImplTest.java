@@ -91,4 +91,29 @@ public class CityImplTest {
         assertTrue(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
         assertFalse(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
     }
+
+    @Test
+    @DisplayName("Test that a driver enters a parking lot correctly if allowed")
+    public void testDriverEntersParkingLot() {
+        this.city.moveDriver(DRIVER_ID, Direction.NORTH);
+        this.city.authorizeDriver(DRIVER_ID, PARKING_LOT_ID);
+        assertTrue(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
+        assertEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that a driver can't enter a parking lot if it's not adjacent to it")
+    public void testDriverCannotEnterParkingLotIfNotAdjacent() {
+        this.city.authorizeDriver(DRIVER_ID, PARKING_LOT_ID);
+        assertFalse(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
+        assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
+    }
+
+   @Test
+   @DisplayName("Test that a driver can't enter a parking lot if it's not authorized")
+   public void testDriverCannotEnterParkingLotIfNotAuthorized() {
+       this.city.moveDriver(DRIVER_ID, Direction.NORTH);
+       assertFalse(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
+       assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
+   }
 }

@@ -10,6 +10,7 @@ public class CityImpl implements City {
     private final List<Area> areas;
     private final Map<String, Position> parkingLots;
     private final Map<String, Position> drivers;
+    private final Map<String, String> authorizations = new HashMap<>(); // drivers -> parking lots
 
     public CityImpl(final int width, final int height, final List<Area> areas,
                     final Map<String, Position> parkingLots, final Map<String, Position> drivers) {
@@ -82,5 +83,32 @@ public class CityImpl implements City {
         }
         this.drivers.replace(id, this.drivers.get(id).move(direction));
         return true;
+    }
+
+    @Override
+    public void authorizeDriver(final String driverId, final String parkingLotId) {
+        this.requireDriverExistence(driverId);
+        this.requireParkingLotExistence(parkingLotId);
+        this.authorizations.put(driverId, parkingLotId);
+    }
+
+    @Override
+    public boolean enter(final String driverId, final String parkingLotId) {
+        this.requireDriverExistence(driverId);
+        this.requireParkingLotExistence(parkingLotId);
+        if (!this.areAdjacent(driverId, parkingLotId) || !this.authorizations.containsKey(driverId)
+                || !this.authorizations.get(driverId).equals(parkingLotId)) {
+            return false;
+        }
+        this.drivers.replace(driverId, this.parkingLots.get(parkingLotId));
+        this.authorizations.remove(driverId);
+        return true;
+    }
+
+    private boolean areAdjacent(final String driverId, final String parkingLotId) {
+        final Position driverPos = this.drivers.get(driverId);
+        final Position parkingPos = this.parkingLots.get(parkingLotId);
+        return (driverPos.x() == parkingPos.x() && Math.abs(driverPos.y() - parkingPos.y()) == 1)
+                || (driverPos.y() == parkingPos.y() && Math.abs(driverPos.x() - parkingPos.x()) == 1);
     }
 }
