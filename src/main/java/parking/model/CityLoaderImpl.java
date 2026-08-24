@@ -31,11 +31,11 @@ public class CityLoaderImpl implements CityLoader {
                     this.areas.stream().map(a -> new Area(a.id, new Position(a.x1, a.y1), new Position(a.x2, a.y2)))
                             .toList(),
                     this.parkingLots.stream().collect(Collectors.toMap(
-                            p -> p.id,
+                            p -> new ParkingLotId(p.id),
                             p -> new Position(p.x, p.y)
                     )),
                     this.drivers.stream().collect(Collectors.toMap(
-                            d -> d.id,
+                            d -> new DriverId(d.id),
                             d -> new Position(d.x, d.y)
                     ))
             );

@@ -12,12 +12,12 @@ public class CityImplTest {
     private static final int WIDTH = 3;
     private static final int HEIGHT = 3;
     private static final String AREA_ID = "a1";
-    private static final String PARKING_LOT_ID = "p1";
-    private static final String DRIVER_ID = "d1";
+    private static final ParkingLotId PARKING_LOT_ID = new ParkingLotId("p1");
+    private static final DriverId DRIVER_ID = new DriverId("d1");
     private static final Position PARKING_LOT_POSITION = new Position(0, 0);
     private static final Position DRIVER_POSITION = new Position(1, 1);
-    private static final String NON_EXISTENT_PARKING_LOT_ID = "p2";
-    private static final String NON_EXISTENT_DRIVER_ID = "d2";
+    private static final ParkingLotId NON_EXISTENT_PARKING_LOT_ID = new ParkingLotId("p2");
+    private static final DriverId NON_EXISTENT_DRIVER_ID = new DriverId("d2");
     private static final Position INVALID_POSITION = new Position(3, 3);
 
     private City city;

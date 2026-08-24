@@ -3,9 +3,7 @@ package parking;
 import jason.asSyntax.Literal;
 import jason.asSyntax.Structure;
 import jason.environment.Environment;
-import parking.model.City;
-import parking.model.CityLoaderImpl;
-import parking.model.Direction;
+import parking.model.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +34,10 @@ public class ParkingEnvironment extends Environment {
 
     private Collection<Literal> getDriverAgentPercepts(final String agentName) {
         return List.of(
-                Literal.parseLiteral(String.format("area(%s)", this.city.getDriverArea(agentName))),
+                Literal.parseLiteral(String.format("area(%s)", this.city.getDriverArea(new DriverId(agentName)))),
                 Literal.parseLiteral(String.format("position(%d, %d)",
-                        this.city.getDriverPosition(agentName).x(),
-                        this.city.getDriverPosition(agentName).y()
+                        this.city.getDriverPosition(new DriverId(agentName)).x(),
+                        this.city.getDriverPosition(new DriverId(agentName)).y()
                 ))
         );
     }
@@ -47,8 +45,8 @@ public class ParkingEnvironment extends Environment {
     private Collection<Literal> getParkingAgentPercepts(final String agentName) {
         return List.of(
                 Literal.parseLiteral(String.format("position(%d, %d)",
-                        this.city.getParkingLotPosition(agentName).x(),
-                        this.city.getParkingLotPosition(agentName).y()
+                        this.city.getParkingLotPosition(new ParkingLotId(agentName)).x(),
+                        this.city.getParkingLotPosition(new ParkingLotId(agentName)).y()
                 ))
         );
     }
@@ -56,12 +54,14 @@ public class ParkingEnvironment extends Environment {
     @Override
     public boolean executeAction(final String agentName, final Structure action) {
         return switch (action.getFunctor()) {
-            case MOVE_ACTION -> this.city.moveDriver(agentName, Direction.fromString(action.getTerm(0).toString()));
+            case MOVE_ACTION ->
+                    this.city.moveDriver(new DriverId(agentName), Direction.fromString(action.getTerm(0).toString()));
             case AUTHORIZE_ACTION -> {
-                this.city.authorizeDriver(action.getTerm(0).toString(), agentName);
+                this.city.authorizeDriver(new DriverId(action.getTerm(0).toString()), new ParkingLotId(agentName));
                 yield true;
             }
-            case ENTER_ACTION -> this.city.enter(agentName, action.getTerm(0).toString());
+            case ENTER_ACTION ->
+                    this.city.enter(new DriverId(agentName), new ParkingLotId(action.getTerm(0).toString()));
             default -> throw new IllegalArgumentException("Unknown action: " + action);
         };
     }

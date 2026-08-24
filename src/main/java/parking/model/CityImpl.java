@@ -8,12 +8,12 @@ public class CityImpl implements City {
     private final int width;
     private final int height;
     private final List<Area> areas;
-    private final Map<String, Position> parkingLots;
-    private final Map<String, Position> drivers;
-    private final Map<String, String> authorizations = new HashMap<>(); // drivers -> parking lots
+    private final Map<ParkingLotId, Position> parkingLots;
+    private final Map<DriverId, Position> drivers;
+    private final Map<DriverId, ParkingLotId> authorizations = new HashMap<>();
 
     public CityImpl(final int width, final int height, final List<Area> areas,
-                    final Map<String, Position> parkingLots, final Map<String, Position> drivers) {
+                    final Map<ParkingLotId, Position> parkingLots, final Map<DriverId, Position> drivers) {
         this.width = width;
         this.height = height;
         this.areas = List.copyOf(areas);
@@ -42,7 +42,7 @@ public class CityImpl implements City {
     }
 
     @Override
-    public String getDriverArea(final String id) {
+    public String getDriverArea(final DriverId id) {
         this.requireDriverExistence(id);
         return this.areas.stream()
                 .filter(area -> area.contains(this.drivers.get(id)))
@@ -52,31 +52,31 @@ public class CityImpl implements City {
     }
 
     @Override
-    public Position getDriverPosition(final String id) {
+    public Position getDriverPosition(final DriverId id) {
         this.requireDriverExistence(id);
         return this.drivers.get(id);
     }
 
-    private void requireDriverExistence(final String id) {
+    private void requireDriverExistence(final DriverId id) {
         if (this.drivers.get(id) == null) {
             throw new IllegalArgumentException("No such driver: " + id);
         }
     }
 
     @Override
-    public Position getParkingLotPosition(final String id) {
+    public Position getParkingLotPosition(final ParkingLotId id) {
         this.requireParkingLotExistence(id);
         return this.parkingLots.get(id);
     }
 
-    private void requireParkingLotExistence(final String id) {
+    private void requireParkingLotExistence(final ParkingLotId id) {
         if (this.parkingLots.get(id) == null) {
             throw new IllegalArgumentException("No such parking lot: " + id);
         }
     }
 
     @Override
-    public boolean moveDriver(final String id, final Direction direction) {
+    public boolean moveDriver(final DriverId id, final Direction direction) {
         this.requireDriverExistence(id);
         if (this.isOutOfBounds(this.drivers.get(id).move(direction))) {
             return false;
@@ -86,14 +86,14 @@ public class CityImpl implements City {
     }
 
     @Override
-    public void authorizeDriver(final String driverId, final String parkingLotId) {
+    public void authorizeDriver(final DriverId driverId, final ParkingLotId parkingLotId) {
         this.requireDriverExistence(driverId);
         this.requireParkingLotExistence(parkingLotId);
         this.authorizations.put(driverId, parkingLotId);
     }
 
     @Override
-    public boolean enter(final String driverId, final String parkingLotId) {
+    public boolean enter(final DriverId driverId, final ParkingLotId parkingLotId) {
         this.requireDriverExistence(driverId);
         this.requireParkingLotExistence(parkingLotId);
         if (!this.areAdjacent(driverId, parkingLotId) || !this.authorizations.containsKey(driverId)
@@ -105,7 +105,7 @@ public class CityImpl implements City {
         return true;
     }
 
-    private boolean areAdjacent(final String driverId, final String parkingLotId) {
+    private boolean areAdjacent(final DriverId driverId, final ParkingLotId parkingLotId) {
         final Position driverPos = this.drivers.get(driverId);
         final Position parkingPos = this.parkingLots.get(parkingLotId);
         return (driverPos.x() == parkingPos.x() && Math.abs(driverPos.y() - parkingPos.y()) == 1)
