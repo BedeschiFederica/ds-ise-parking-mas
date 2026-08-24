@@ -38,7 +38,7 @@ public class CityImpl implements City {
     }
 
     private boolean isOutOfBounds(final Position position) {
-        return position.x() < 0 || position.x() >= this.width || position.y() < 0 || position.y() >= this.height;
+        return position.x() < 0 || position.x() >= this.height || position.y() < 0 || position.y() >= this.width;
     }
 
     @Override
