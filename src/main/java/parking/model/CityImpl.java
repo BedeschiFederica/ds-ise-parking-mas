@@ -1,5 +1,8 @@
 package parking.model;
 
+import parking.Direction;
+import parking.Position;
+
 import java.util.*;
 import java.util.stream.*;
 

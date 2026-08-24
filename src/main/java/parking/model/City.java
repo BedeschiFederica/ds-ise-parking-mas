@@ -1,5 +1,8 @@
 package parking.model;
 
+import parking.Direction;
+import parking.Position;
+
 public interface City {
 
     /**

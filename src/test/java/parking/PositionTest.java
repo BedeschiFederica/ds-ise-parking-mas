@@ -1,4 +1,4 @@
-package parking.model;
+package parking;
 
 import static org.junit.jupiter.api.Assertions.*;
 

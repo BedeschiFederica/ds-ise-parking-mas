@@ -1,5 +1,7 @@
 package parking.model;
 
+import parking.Position;
+
 public record Area(String id, Position vertex1, Position vertex2) {
 
     public Area {
