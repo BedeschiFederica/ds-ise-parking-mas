@@ -1,9 +1,9 @@
 package parking.model;
 
-import parking.Direction;
-import parking.Occupier;
-import parking.OccupierType;
-import parking.Position;
+import parking.common.Direction;
+import parking.common.Occupier;
+import parking.common.OccupierType;
+import parking.common.Position;
 
 import java.util.*;
 import java.util.stream.*;

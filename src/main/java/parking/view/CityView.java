@@ -1,7 +1,7 @@
 package parking.view;
 
-import parking.Occupier;
-import parking.Position;
+import parking.common.Occupier;
+import parking.common.Position;
 
 import java.util.Map;
 

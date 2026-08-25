@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.*;
 
-import parking.Direction;
-import parking.Position;
+import parking.common.Direction;
+import parking.common.Position;
 
 import java.util.List;
 import java.util.Map;

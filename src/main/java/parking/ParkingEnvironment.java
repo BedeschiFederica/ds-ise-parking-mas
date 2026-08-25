@@ -3,6 +3,7 @@ package parking;
 import jason.asSyntax.Literal;
 import jason.asSyntax.Structure;
 import jason.environment.Environment;
+import parking.common.Direction;
 import parking.model.*;
 import parking.view.CityGUI;
 import parking.view.CityView;

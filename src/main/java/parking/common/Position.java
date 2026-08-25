@@ -1,4 +1,4 @@
-package parking;
+package parking.common;
 
 public record Position(int x, int y) {
 

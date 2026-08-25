@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import parking.Position;
+import parking.common.Position;
 
 public class CityLoaderImpl implements CityLoader {
     private final ObjectMapper mapper = new ObjectMapper();

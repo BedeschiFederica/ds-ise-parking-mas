@@ -1,8 +1,7 @@
 package parking.view;
 
-import parking.Occupier;
-import parking.OccupierType.*;
-import parking.Position;
+import parking.common.Occupier;
+import parking.common.Position;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,6 +1,6 @@
 package parking.model;
 
-import parking.Position;
+import parking.common.Position;
 
 import java.util.Set;
 import java.util.stream.Collectors;
