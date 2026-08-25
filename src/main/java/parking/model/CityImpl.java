@@ -1,6 +1,8 @@
 package parking.model;
 
 import parking.Direction;
+import parking.Occupier;
+import parking.OccupierType;
 import parking.Position;
 
 import java.util.*;
@@ -42,6 +44,16 @@ public class CityImpl implements City {
 
     private boolean isOutOfBounds(final Position position) {
         return position.x() < 0 || position.x() >= this.height || position.y() < 0 || position.y() >= this.width;
+    }
+
+    @Override
+    public int getWidth() {
+        return this.width;
+    }
+
+    @Override
+    public int getHeight() {
+        return this.height;
     }
 
     @Override
@@ -113,5 +125,28 @@ public class CityImpl implements City {
         final Position parkingPos = this.parkingLots.get(parkingLotId);
         return (driverPos.x() == parkingPos.x() && Math.abs(driverPos.y() - parkingPos.y()) == 1)
                 || (driverPos.y() == parkingPos.y() && Math.abs(driverPos.x() - parkingPos.x()) == 1);
+    }
+
+    @Override
+    public Map<Position, Occupier> getOccupiers() {
+        final Map<Position, Occupier> occupiers =
+                Stream.concat(
+                        this.parkingLots.entrySet().stream()
+                                .map(e -> Map.entry(
+                                        e.getValue(),
+                                        new Occupier(e.getKey().id(), OccupierType.PARKING)
+                                )),
+                        this.drivers.entrySet().stream()
+                                .filter(e -> !this.parkingLots.containsValue(e.getValue()))
+                                .map(e -> Map.entry(
+                                        e.getValue(),
+                                        new Occupier(e.getKey().id(), OccupierType.DRIVER)
+                                ))
+                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        this.areas.stream()
+                .flatMap(area -> area.getPositions().stream().map(position ->
+                        Map.entry(position, new Occupier(area.id(), OccupierType.AREA))))
+                .forEach(entry -> occupiers.putIfAbsent(entry.getKey(), entry.getValue()));
+        return occupiers;
     }
 }

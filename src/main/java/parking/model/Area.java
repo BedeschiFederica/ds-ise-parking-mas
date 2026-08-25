@@ -2,22 +2,27 @@ package parking.model;
 
 import parking.Position;
 
-public record Area(String id, Position vertex1, Position vertex2) {
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-    public Area {
+record Area(String id, Position vertex1, Position vertex2) {
+
+    Area {
         if (vertex1.x() > vertex2.x() || vertex1.y() > vertex2.y()) {
             throw new IllegalArgumentException("Invalid area vertices: " + vertex1 + ", " + vertex2);
         }
     }
 
-    public boolean contains(final Position position) {
-        for (int x = this.vertex1.x(); x <= this.vertex2.x(); x++) {
-            for (int y = this.vertex1.y(); y <= this.vertex2.y(); y++) {
-                if (new Position(x, y).equals(position)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    boolean contains(final Position position) {
+        return this.getPositions().contains(position);
+    }
+
+    Set<Position> getPositions() {
+        return IntStream.rangeClosed(this.vertex1.x(), this.vertex2.x())
+                .boxed()
+                .flatMap(x ->
+                        IntStream.rangeClosed(this.vertex1.y(), this.vertex2.y()).mapToObj(y -> new Position(x, y)))
+                .collect(Collectors.toSet());
     }
 }

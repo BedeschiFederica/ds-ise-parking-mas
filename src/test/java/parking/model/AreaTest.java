@@ -3,6 +3,7 @@ package parking.model;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.*;
+
 import parking.Position;
 
 public class AreaTest {
@@ -33,5 +34,11 @@ public class AreaTest {
     @DisplayName("Test that the area does not contain a position outside its bounds")
     public void testAreaDoesNotContainPosition() {
         assertFalse(this.area.contains(OUT_POSITION));
+    }
+
+    @Test
+    @DisplayName("Test that the area returns the correct amount of positions")
+    public void testGetPositions() {
+        assertEquals(9, this.area.getPositions().size());
     }
 }

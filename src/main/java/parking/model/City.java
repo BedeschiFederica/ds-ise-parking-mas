@@ -1,9 +1,26 @@
 package parking.model;
 
 import parking.Direction;
+import parking.Occupier;
 import parking.Position;
 
+import java.util.Map;
+
 public interface City {
+
+    /**
+     * Gets city width.
+     *
+     * @return the width of the city.
+     */
+    int getWidth();
+
+    /**
+     * Gets city height.
+     *
+     * @return the height of the city.
+     */
+    int getHeight();
 
     /**
      * Gets the area in which the driver is located.
@@ -54,4 +71,11 @@ public interface City {
      * @return true if the driver entered successfully, false otherwise.
      */
     boolean enter(DriverId driverId, ParkingLotId parkingLotId);
+
+    /**
+     * Gets the occupiers of the city.
+     *
+     * @return a map containing each position and its occupier.
+     */
+    Map<Position, Occupier> getOccupiers();
 }

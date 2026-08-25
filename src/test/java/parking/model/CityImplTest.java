@@ -45,6 +45,13 @@ public class CityImplTest {
     }
 
     @Test
+    @DisplayName("Test that the city returns the correct dimensions")
+    public void testGetCityDimensions() {
+        assertEquals(WIDTH, this.city.getWidth());
+        assertEquals(HEIGHT, this.city.getHeight());
+    }
+
+    @Test
     @DisplayName("Test that the city returns the correct area for a driver")
     public void testGetDriverArea() {
         assertEquals(AREA_ID, this.city.getDriverArea(DRIVER_ID));
@@ -112,11 +119,17 @@ public class CityImplTest {
         assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
     }
 
-   @Test
-   @DisplayName("Test that a driver can't enter a parking lot if it's not authorized")
-   public void testDriverCannotEnterParkingLotIfNotAuthorized() {
-       this.city.moveDriver(DRIVER_ID, Direction.NORTH);
-       assertFalse(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
-       assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
-   }
+    @Test
+    @DisplayName("Test that a driver can't enter a parking lot if it's not authorized")
+    public void testDriverCannotEnterParkingLotIfNotAuthorized() {
+        this.city.moveDriver(DRIVER_ID, Direction.NORTH);
+        assertFalse(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
+        assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that the city returns the correct amount of occupiers")
+    public void testGetOccupiers() {
+        assertEquals(WIDTH * HEIGHT, this.city.getOccupiers().size());
+    }
 }
