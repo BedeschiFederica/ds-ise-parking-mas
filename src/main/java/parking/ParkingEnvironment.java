@@ -4,6 +4,8 @@ import jason.asSyntax.Literal;
 import jason.asSyntax.Structure;
 import jason.environment.Environment;
 import parking.model.*;
+import parking.view.CityGUI;
+import parking.view.CityView;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,10 +18,14 @@ public class ParkingEnvironment extends Environment {
     private static final String ENTER_ACTION = "enter";
 
     private City city;
+    private CityView view;
 
     @Override
     public void init(final String[] args) {
         this.city = new CityLoaderImpl().load(args[0]);
+        this.view = new CityGUI(this.city.getWidth(), this.city.getHeight());
+        this.updateView();
+        this.view.setVisible(true);
     }
 
     @Override
@@ -53,7 +59,7 @@ public class ParkingEnvironment extends Environment {
 
     @Override
     public boolean executeAction(final String agentName, final Structure action) {
-        return switch (action.getFunctor()) {
+        final boolean result = switch (action.getFunctor()) {
             case MOVE_ACTION ->
                     this.city.moveDriver(new DriverId(agentName), Direction.fromString(action.getTerm(0).toString()));
             case AUTHORIZE_ACTION -> {
@@ -64,5 +70,14 @@ public class ParkingEnvironment extends Environment {
                     this.city.enter(new DriverId(agentName), new ParkingLotId(action.getTerm(0).toString()));
             default -> throw new IllegalArgumentException("Unknown action: " + action);
         };
+        this.updateView();
+        try {
+            Thread.sleep(1000);
+        } catch (final InterruptedException ignored) {}
+        return result;
+    }
+
+    private void updateView() {
+        this.view.update(this.city.getOccupiers());
     }
 }
