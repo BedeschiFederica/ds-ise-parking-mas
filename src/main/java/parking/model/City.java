@@ -56,14 +56,6 @@ public interface City {
     boolean moveDriver(DriverId id, Direction direction);
 
     /**
-     * Authorizes the specified driver to enter the specified parking lot.
-     *
-     * @param driverId the id of the driver
-     * @param parkingLotId the id of the parking lot.
-     */
-    void authorizeDriver(DriverId driverId, ParkingLotId parkingLotId);
-
-    /**
      * Makes the specified driver enter the specified parking lot.
      *
      * @param driverId the id of the driver

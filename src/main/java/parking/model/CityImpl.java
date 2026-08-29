@@ -15,10 +15,9 @@ public class CityImpl implements City {
     private final List<Area> areas;
     private final Map<ParkingLotId, Position> parkingLots;
     private final Map<DriverId, Position> drivers;
-    private final Map<DriverId, ParkingLotId> authorizations = new HashMap<>();
 
-    public CityImpl(final int width, final int height, final List<Area> areas,
-                    final Map<ParkingLotId, Position> parkingLots, final Map<DriverId, Position> drivers) {
+    CityImpl(final int width, final int height, final List<Area> areas,
+             final Map<ParkingLotId, Position> parkingLots, final Map<DriverId, Position> drivers) {
         this.width = width;
         this.height = height;
         this.areas = List.copyOf(areas);
@@ -101,22 +100,13 @@ public class CityImpl implements City {
     }
 
     @Override
-    public void authorizeDriver(final DriverId driverId, final ParkingLotId parkingLotId) {
-        this.requireDriverExistence(driverId);
-        this.requireParkingLotExistence(parkingLotId);
-        this.authorizations.put(driverId, parkingLotId);
-    }
-
-    @Override
     public boolean enter(final DriverId driverId, final ParkingLotId parkingLotId) {
         this.requireDriverExistence(driverId);
         this.requireParkingLotExistence(parkingLotId);
-        if (!this.areAdjacent(driverId, parkingLotId) || !this.authorizations.containsKey(driverId)
-                || !this.authorizations.get(driverId).equals(parkingLotId)) {
+        if (!this.areAdjacent(driverId, parkingLotId)) {
             return false;
         }
         this.drivers.replace(driverId, this.parkingLots.get(parkingLotId));
-        this.authorizations.remove(driverId);
         return true;
     }
 
