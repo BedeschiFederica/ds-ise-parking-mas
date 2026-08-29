@@ -21,8 +21,10 @@
     true.
 
 +?entry_status(granted)[source(D)] : available(A) & A > 0 <-
-    .print("Authorizing entry to driver ", D, "; available spots: ", A);
-     authorize(D).
+    .print("Processing entry request from driver ", D, "; available spots: ", A);
+    enter_driver(D);
+    .print("Entry granted for driver ", D, "; remaining spots: ", A - 1);
+    +available(A - 1).
 
-+?entry_status(denied)[source(D)] : available(A) & A = 0 <-
++?entry_status(denied)[source(D)] <-
     .print("Entry denied for driver ", D, "; no available spots.").

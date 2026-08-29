@@ -87,14 +87,7 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     !process_entry_response(Answer, P).
 
 +!process_entry_response(entry_status(granted), P) <-
-    .print("Entering parking lot ", P);
-    enter(P);
     .print("Successfully entered parking lot ", P).
-
--!process_entry_response(entry_status(granted), P) <-
-    .print("Failed to enter parking lot ", P, "; retrying in 0.5s");
-    .wait(500);
-    !process_entry_response(entry_status(granted), P).
 
 +!process_entry_response(entry_status(denied), P) <-
     .print("Entry denied for parking lot ", P);
