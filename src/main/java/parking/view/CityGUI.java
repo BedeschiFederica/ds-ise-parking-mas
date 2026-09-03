@@ -23,11 +23,11 @@ public class CityGUI extends JFrame implements CityView {
         final JPanel gridPanel = new JPanel(new GridLayout(height, width));
         for (int x = 0; x < height; x++) {
             for (int y = 0; y < width; y++) {
-                final JButton element = new JButton("");
-                element.setEnabled(false);
-                element.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                gridPanel.add(element);
-                this.grid.put(new Position(x, y), element);
+                final JButton cell = new JButton("");
+                cell.setEnabled(false);
+                cell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                gridPanel.add(cell);
+                this.grid.put(new Position(x, y), cell);
             }
         }
         this.setContentPane(gridPanel);
@@ -37,25 +37,27 @@ public class CityGUI extends JFrame implements CityView {
 
     @Override
     public void update(final Map<Position, Occupier> city) {
-        city.forEach((position, occupier) -> {
-            this.requireCellExistence(position);
-            final JButton cell = this.grid.get(position);
-            switch (occupier.type()) {
-                case AREA:
-                    cell.setText("");
-                    cell.setBackground(this.getAreaColor(occupier.id()));
-                    break;
-                case PARKING:
-                    cell.setText(occupier.id());
-                    cell.setBackground(PARKING_COLOR);
-                    break;
-                case DRIVER:
-                    cell.setText(occupier.id());
-                    cell.setBackground(this.getDriverColor(occupier.id()));
-                    break;
-            }
+        SwingUtilities.invokeLater(() -> {
+            city.forEach((position, occupier) -> {
+                this.requireCellExistence(position);
+                final JButton cell = this.grid.get(position);
+                switch (occupier.type()) {
+                    case AREA:
+                        cell.setText("");
+                        cell.setBackground(this.getAreaColor(occupier.id()));
+                        break;
+                    case PARKING:
+                        cell.setText(occupier.id());
+                        cell.setBackground(PARKING_COLOR);
+                        break;
+                    case DRIVER:
+                        cell.setText(occupier.id());
+                        cell.setBackground(this.getDriverColor(occupier.id()));
+                        break;
+                }
+            });
+            this.repaint();
         });
-        this.repaint();
     }
 
     private void requireCellExistence(final Position position) {

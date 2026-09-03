@@ -6,6 +6,7 @@ import parking.common.OccupierType;
 import parking.common.Position;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.*;
 
 public class CityImpl implements City {
@@ -22,7 +23,7 @@ public class CityImpl implements City {
         this.height = height;
         this.areas = List.copyOf(areas);
         this.parkingLots = Map.copyOf(parkingLots);
-        this.drivers = new HashMap<>(drivers);
+        this.drivers = new ConcurrentHashMap<>(drivers);
         this.validatePositions();
         System.out.println("Width: " + this.width + ", height: " + this.height);
         System.out.println("Areas: " + this.areas);
@@ -72,7 +73,7 @@ public class CityImpl implements City {
     }
 
     private void requireDriverExistence(final DriverId id) {
-        if (this.drivers.get(id) == null) {
+        if (!this.drivers.containsKey(id)) {
             throw new IllegalArgumentException("No such driver: " + id);
         }
     }
@@ -84,23 +85,24 @@ public class CityImpl implements City {
     }
 
     private void requireParkingLotExistence(final ParkingLotId id) {
-        if (this.parkingLots.get(id) == null) {
+        if (!this.parkingLots.containsKey(id)) {
             throw new IllegalArgumentException("No such parking lot: " + id);
         }
     }
 
     @Override
-    public boolean moveDriver(final DriverId id, final Direction direction) {
+    public synchronized boolean moveDriver(final DriverId id, final Direction direction) {
         this.requireDriverExistence(id);
-        if (this.isOutOfBounds(this.drivers.get(id).move(direction))) {
+        final Position newPosition = this.drivers.get(id).move(direction);
+        if (this.isOutOfBounds(newPosition)) {
             return false;
         }
-        this.drivers.replace(id, this.drivers.get(id).move(direction));
+        this.drivers.replace(id, newPosition);
         return true;
     }
 
     @Override
-    public boolean enter(final DriverId driverId, final ParkingLotId parkingLotId) {
+    public synchronized boolean enter(final DriverId driverId, final ParkingLotId parkingLotId) {
         this.requireDriverExistence(driverId);
         this.requireParkingLotExistence(parkingLotId);
         if (!this.areAdjacent(driverId, parkingLotId)) {
