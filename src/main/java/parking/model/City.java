@@ -5,6 +5,7 @@ import parking.common.Occupier;
 import parking.common.Position;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface City {
 
@@ -67,7 +68,7 @@ public interface City {
     /**
      * Gets the occupiers of the city.
      *
-     * @return a map containing each position and its occupier.
+     * @return a map containing each position and its occupiers.
      */
-    Map<Position, Occupier> getOccupiers();
+    Map<Position, Set<Occupier>> getOccupiers();
 }

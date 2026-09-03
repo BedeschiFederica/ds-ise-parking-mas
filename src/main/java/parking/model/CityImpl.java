@@ -120,8 +120,8 @@ public class CityImpl implements City {
     }
 
     @Override
-    public Map<Position, Occupier> getOccupiers() {
-        final Map<Position, Occupier> occupiers =
+    public Map<Position, Set<Occupier>> getOccupiers() {
+        final Map<Position, Set<Occupier>> occupiers =
                 Stream.concat(
                         this.parkingLots.entrySet().stream()
                                 .map(e -> Map.entry(
@@ -129,16 +129,19 @@ public class CityImpl implements City {
                                         new Occupier(e.getKey().id(), OccupierType.PARKING)
                                 )),
                         this.drivers.entrySet().stream()
-                                .filter(e -> !this.parkingLots.containsValue(e.getValue()))
                                 .map(e -> Map.entry(
                                         e.getValue(),
                                         new Occupier(e.getKey().id(), OccupierType.DRIVER)
                                 ))
-                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                ).collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
+                )
+        );
         this.areas.stream()
                 .flatMap(area -> area.getPositions().stream().map(position ->
                         Map.entry(position, new Occupier(area.id(), OccupierType.AREA))))
-                .forEach(entry -> occupiers.putIfAbsent(entry.getKey(), entry.getValue()));
+                .forEach(entry -> occupiers.putIfAbsent(entry.getKey(), Set.of(entry.getValue())));
         return occupiers;
     }
 }
