@@ -1,22 +1,24 @@
 package parking.view;
 
 import parking.common.Occupier;
+import parking.common.OccupierType;
 import parking.common.Position;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CityGUI extends JFrame implements CityView {
 
     private static final Color PARKING_COLOR = new Color(255, 0, 0);
+    private static final Color MULTIPLE_DRIVERS_COLOR = new Color(128, 128, 128);
 
     private final Random random = new Random();
     private final Map<Position, JButton> grid = new HashMap<>();
     private final Map<String, Color> areaColors = new HashMap<>();
     private final Map<String, Color> driverColors = new HashMap<>();
+    private final Map<String, JLabel> parkingLabels = new HashMap<>();
 
     public CityGUI(final int width, final int height) {
         UIManager.put("Button.disabledText", Color.BLACK);
@@ -36,23 +38,30 @@ public class CityGUI extends JFrame implements CityView {
     }
 
     @Override
-    public void update(final Map<Position, Occupier> city) {
+    public void update(final Map<Position, Set<Occupier>> city) {
         SwingUtilities.invokeLater(() -> {
-            city.forEach((position, occupier) -> {
+            city.forEach((position, occupiers) -> {
                 this.requireCellExistence(position);
                 final JButton cell = this.grid.get(position);
-                switch (occupier.type()) {
+                switch (this.getType(occupiers)) {
                     case AREA:
                         cell.setText("");
-                        cell.setBackground(this.getAreaColor(occupier.id()));
+                        cell.setBackground(this.getAreaColor(occupiers.stream().toList().getFirst().id()));
                         break;
                     case PARKING:
-                        cell.setText(occupier.id());
+                        final String parkingId = this.getParkingId(occupiers);
+                        cell.setText(parkingId);
                         cell.setBackground(PARKING_COLOR);
+                        this.initListenerIfNecessary(cell, parkingId);
+                        this.parkingLabels.get(parkingId).setText("Drivers: " + this.getDriverIds(occupiers));
                         break;
                     case DRIVER:
-                        cell.setText(occupier.id());
-                        cell.setBackground(this.getDriverColor(occupier.id()));
+                        cell.setText(occupiers.size() == 1
+                                ? occupiers.stream().toList().getFirst().id()
+                                : occupiers.stream().map(Occupier::id).toList().toString());
+                        cell.setBackground(occupiers.size() == 1
+                                ? this.getDriverColor(occupiers.stream().toList().getFirst().id())
+                                : MULTIPLE_DRIVERS_COLOR);
                         break;
                 }
             });
@@ -63,6 +72,44 @@ public class CityGUI extends JFrame implements CityView {
     private void requireCellExistence(final Position position) {
         if (!this.grid.containsKey(position)) {
             throw new IllegalArgumentException("Cell at position " + position + " does not exist");
+        }
+    }
+
+    private OccupierType getType(final Set<Occupier> occupiers) {
+        if (occupiers.isEmpty()) {
+            throw new IllegalArgumentException("Occupiers set cannot be empty");
+        }
+        if (occupiers.stream().anyMatch(occupier -> occupier.type() == OccupierType.PARKING)) {
+            return OccupierType.PARKING;
+        } else if (occupiers.stream().anyMatch(occupier -> occupier.type() == OccupierType.DRIVER)) {
+            return OccupierType.DRIVER;
+        }
+        return OccupierType.AREA;
+    }
+
+    private String getParkingId(final Set<Occupier> occupiers) {
+        return occupiers.stream()
+                .filter(occupier -> occupier.type() == OccupierType.PARKING)
+                .findFirst()
+                .map(Occupier::id)
+                .orElseThrow(() -> new IllegalStateException("Parking id not found"));
+    }
+
+    private Set<String> getDriverIds(final Set<Occupier> occupiers) {
+        return occupiers.stream()
+                .filter(occupier -> occupier.type() == OccupierType.DRIVER)
+                .map(Occupier::id)
+                .collect(Collectors.toSet());
+    }
+
+    private void initListenerIfNecessary(final JButton cell, final String parkingId) {
+        if (cell.getActionListeners().length == 0) {
+            cell.setEnabled(true);
+            final JPopupMenu popup = new JPopupMenu();
+            final JLabel label = new JLabel("");
+            this.parkingLabels.put(parkingId, label);
+            popup.add(label);
+            cell.addActionListener(e -> popup.show(cell, 0, cell.getHeight()));
         }
     }
 

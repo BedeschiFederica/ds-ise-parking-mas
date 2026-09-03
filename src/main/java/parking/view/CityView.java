@@ -4,6 +4,7 @@ import parking.common.Occupier;
 import parking.common.Position;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface CityView {
 
@@ -15,9 +16,9 @@ public interface CityView {
     void setVisible(boolean b);
 
     /**
-     * Updates the city.
+     * Updates the view of the city.
      *
-     * @param city the map of positions to occupiers representing the city.
+     * @param city the city represented as a map containing each position and its occupiers.
      */
-    void update(Map<Position, Occupier> city);
+    void update(Map<Position, Set<Occupier>> city);
 }
