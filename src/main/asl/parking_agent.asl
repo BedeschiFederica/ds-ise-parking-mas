@@ -13,11 +13,14 @@
 +!start <-
     .print("Parking agent started").
 
++available(Spots) : area(Agent) <-
+    .send(Agent, tell, available(Spots)).
+
 // ====================
 // TEST-GOAL PLANS
 // ====================
 
-+?parking_info(position(X, Y)) : position(X, Y) <-
++?parking_info(position(X, Y), available(A)) : position(X, Y) & available(A) <-
     true.
 
 @[atomic]
