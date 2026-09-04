@@ -25,15 +25,16 @@
 
 +!process_parking_response(parking_info(Position, Available), P) <-
     .print("Parking agent ", P, " at ", Position, " has ", Available, " available spots");
-    +parking_info(P, Position, Available).
+    +parking_status(P, Position, Available).
 
-+available(A)[source(P)] : parking_info(P, Position, _) <-
-    -+parking_info(P, Position, A);
++available(A)[source(P)] : parking_status(P, Position, OldA) <-
+    -parking_status(P, Position, OldA);
+    +parking_status(P, Position, A);
     .print("Area agent updated parking info for ", P, " at ", Position, " to ", A, " available spots").
 
 // ====================
 // TEST-GOAL PLANS
 // ====================
 
-+?available_parking(P, Position)[source(_)] : parking_info(P, Position, A) & A > 0 <-
-    true. // random parking selection; TODO specific selection
++?available_parking(P, Position)[source(_)] : parking_status(P, Position, A) & A > 0 <-
+    .print("Available parking found: ", P, " at ", Position). // random parking selection; TODO specific selection

@@ -20,7 +20,7 @@
 // TEST-GOAL PLANS
 // ====================
 
-+?parking_info(position(X, Y), available(A)) : position(X, Y) & available(A) <-
++?parking_info(position(X, Y), A) : position(X, Y) & available(A) <-
     true.
 
 @[atomic]
@@ -28,7 +28,7 @@
     .print("Processing entry request from driver ", D, "; available spots: ", A);
     enter_driver(D);
     .print("Entry granted for driver ", D, "; remaining spots: ", A - 1);
-    +available(A - 1).
+    -+available(A - 1).
 
 @[atomic]
 +?entry_status(denied)[source(D)] <-
