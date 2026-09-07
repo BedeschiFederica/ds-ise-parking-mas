@@ -41,4 +41,14 @@ public class AreaTest {
     public void testGetPositions() {
         assertEquals(9, this.area.getPositions().size());
     }
+
+    @Test
+    @DisplayName("Test that the area returns the correct distance to a position")
+    public void testDistanceToPosition() {
+        assertAll(() -> {
+            assertEquals(1, this.area.distanceTo(new Position(2, 3)));
+            assertEquals(4, this.area.distanceTo(new Position(4, 4)));
+            assertEquals(3, this.area.distanceTo(new Position(1, 5)));
+        });
+    }
 }

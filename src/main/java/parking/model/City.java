@@ -5,6 +5,7 @@ import parking.common.Occupier;
 import parking.common.Position;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface City {
@@ -29,7 +30,15 @@ public interface City {
      * @param id driver's id
      * @return the id of the area in which the driver is located.
      */
-    String getDriverArea(DriverId id);
+    String getDriverCurrentArea(DriverId id);
+
+    /**
+     * Gets the nearest area to the driver, if any.
+     *
+     * @param id driver's id
+     * @return the id of the nearest area, or an empty Optional if there is none.
+     */
+    Optional<String> getDriverNearestArea(DriverId id);
 
     /**
      * Gets driver position.

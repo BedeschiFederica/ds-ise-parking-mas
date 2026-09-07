@@ -25,4 +25,13 @@ record Area(String id, Position vertex1, Position vertex2) {
                         IntStream.rangeClosed(this.vertex1.y(), this.vertex2.y()).mapToObj(y -> new Position(x, y)))
                 .collect(Collectors.toSet());
     }
+
+    int distanceTo(final Position position) {
+        return distanceToInterval(position.x(), this.vertex1.x(), this.vertex2.x())
+                + distanceToInterval(position.y(), this.vertex1.y(), this.vertex2.y());
+    }
+
+    private int distanceToInterval(final int value, final int min, final int max) {
+        return Math.max(min - value, Math.max(0, value - max));
+    }
 }

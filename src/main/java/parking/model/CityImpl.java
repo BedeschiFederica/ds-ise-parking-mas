@@ -57,13 +57,22 @@ public class CityImpl implements City {
     }
 
     @Override
-    public String getDriverArea(final DriverId id) {
-        this.requireDriverExistence(id);
+    public String getDriverCurrentArea(final DriverId id) {
+        final Position driverPosition = this.getDriverPosition(id);
         return this.areas.stream()
-                .filter(area -> area.contains(this.drivers.get(id)))
+                .filter(area -> area.contains(driverPosition))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Driver " + id + " is not in any area"))
                 .id();
+    }
+
+    @Override
+    public Optional<String> getDriverNearestArea(final DriverId id) {
+        final Position driverPosition = this.getDriverPosition(id);
+        return this.areas.stream()
+                .filter(area -> !area.id().equals(this.getDriverCurrentArea(id)))
+                .min(Comparator.comparingInt(area -> area.distanceTo(driverPosition)))
+                .map(Area::id);
     }
 
     @Override

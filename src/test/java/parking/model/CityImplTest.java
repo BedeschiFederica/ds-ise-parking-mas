@@ -7,8 +7,7 @@ import org.junit.jupiter.api.*;
 import parking.common.Direction;
 import parking.common.Position;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CityImplTest {
 
@@ -52,15 +51,30 @@ public class CityImplTest {
     }
 
     @Test
-    @DisplayName("Test that the city returns the correct area for a driver")
-    public void testGetDriverArea() {
-        assertEquals(AREA_ID, this.city.getDriverArea(DRIVER_ID));
+    @DisplayName("Test that the city returns the correct current area for a driver")
+    public void testGetDriverCurrentArea() {
+        assertEquals(AREA_ID, this.city.getDriverCurrentArea(DRIVER_ID));
     }
 
     @Test
-    @DisplayName("Test that the city fails to return the area for a non-existent driver")
-    public void testCannotGetAreaOfUnexistentDriver() {
-        assertThrows(IllegalArgumentException.class, () -> this.city.getDriverArea(NON_EXISTENT_DRIVER_ID));
+    @DisplayName("Test that the city returns the correct nearest area for a driver")
+    public void testGetDriverNearestArea() {
+        assertEquals(Optional.empty(), this.city.getDriverNearestArea(DRIVER_ID));
+        final City cityWith3Areas = city = new CityImpl(4, 4,
+                List.of(new Area(AREA_ID, new Position(0, 0), new Position(1, 1)),
+                        new Area("a2", new Position(0, 2), new Position(2, 2)),
+                        new Area("a3", new Position(0, 3), new Position(3, 3))),
+                Map.of(PARKING_LOT_ID, PARKING_LOT_POSITION),
+                Map.of(DRIVER_ID, DRIVER_POSITION)
+        );
+        assertEquals(Optional.of("a2"), cityWith3Areas.getDriverNearestArea(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that the city fails to return areas for a non-existent driver")
+    public void testCannotGetAreasOfUnexistentDriver() {
+        assertThrows(IllegalArgumentException.class, () -> this.city.getDriverCurrentArea(NON_EXISTENT_DRIVER_ID));
+        assertThrows(IllegalArgumentException.class, () -> this.city.getDriverNearestArea(NON_EXISTENT_DRIVER_ID));
     }
 
     @Test
