@@ -38,3 +38,6 @@
 
 +?available_parking(P, Position)[source(_)] : parking_status(P, Position, A) & A > 0 <-
     .print("Available parking found: ", P, " at ", Position). // random parking selection; TODO specific selection
+
++?available_parking(none, none)[source(_)] : parking_status(_, _, _) <-
+    .print("No available parking found").

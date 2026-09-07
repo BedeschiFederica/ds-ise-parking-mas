@@ -9,13 +9,17 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 // PERCEPTS
 // ====================
 
-+area(A) <-
-    .my_name(N);
-    .print("Driver ", N, " in area ", A).
-
 +position(X, Y) <-
     .my_name(N);
     .print("Driver ", N, " at (", X, ", ", Y, ")").
+
++current_area(A) <-
+    .my_name(N);
+    .print("Driver ", N, " in area ", A).
+
++nearest_area(A) <-
+    .my_name(N);
+    .print("Driver ", N, " nearest area: ", A).
 
 // ====================
 // PLANS
@@ -26,13 +30,17 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     .print("Driver agent ", N, " started");
     !request_parking.
 
-// ========== Request parking to Area Agent ==========
+// ========== Request parking to Area Agent of current area ==========
 
-+!request_parking : area(A) <-
++!request_parking : current_area(A) <-
     .my_name(N);
     .print("Driver ", N, " requesting parking to area ", A);
     .send(A, askOne, available_parking(P, Position), Answer, 3000);
     !process_parking_response(Answer).
+
++!process_parking_response(available_parking(none, _)) <-
+    .print("No available parking found; contacting nearest area agent");
+    !request_parking_to_nearest_area_agent.
 
 +!process_parking_response(available_parking(P, Position)) <-
     .print("Going to parking lot ", P, " at ", Position);
@@ -45,6 +53,38 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 
 +!process_parking_response(Error) <- // TODO to improve
     .print("Error occurred while contacting area agent: ", Error);
+    .wait(500);
+    !request_parking.
+
+// ========== Request parking to Area Agent of nearest area ==========
+
++!request_parking_to_nearest_area_agent : nearest_area(A) <-
+    .my_name(N);
+    .print("Driver ", N, " requesting parking to area ", A);
+    .send(A, askOne, available_parking(P, Position), Answer, 3000);
+    !process_parking_response_from_nearest_area_agent(Answer).
+
++!request_parking_to_nearest_area_agent <-
+    .print("No nearest area; retrying in 0.5s to area agent of current area");
+    .wait(500);
+    !request_parking.
+
++!process_parking_response_from_nearest_area_agent(available_parking(none, _)) <-
+    .print("No available parking found; retrying in 0.5s to area agent of current area");
+    .wait(500);
+    !request_parking.
+
++!process_parking_response_from_nearest_area_agent(available_parking(P, Position)) <-
+    .print("Going to parking lot ", P, " at ", Position);
+    !go_to_parking_lot(P, Position).
+
++!process_parking_response_from_nearest_area_agent(timeout) <- // TODO
+    .print("Nearest area agent unavailable; retrying to current area agent in 0.5s");
+    .wait(500);
+    !request_parking.
+
++!process_parking_response_from_nearest_area_agent(Error) <- // TODO
+    .print("Error occurred while contacting nearest area agent: ", Error);
     .wait(500);
     !request_parking.
 
@@ -96,7 +136,7 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     .print("Entry denied for parking lot ", P);
     !request_parking.
 
-+!process_entry_response(timeout, P, position(Xp, Yp)) <-
++!process_entry_response(timeout, P, position(Xp, Yp)) <- // TODO to improve with n retries
     .print("Parking agent ", P, " unavailable; retrying in 0.5s");
     .wait(500);
     !request_entry(P, position(Xp, Yp)).
