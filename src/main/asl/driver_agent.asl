@@ -52,7 +52,7 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 
 +!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & adjacent(position(X, Y), position(Xp, Yp)) <-
     .print("Arrived near parking lot ", P, " at ", position(Xp, Yp), "; current position: ", position(X, Y));
-    !request_entry(P).
+    !request_entry(P, position(Xp, Yp)).
 
 +!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & X > Xp <-
     move(north);
@@ -81,24 +81,27 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 
 // ========== Enter parking lot ==========
 
-+!request_entry(P) <-
-    .print("Requesting entry to parking lot ", P);
++!request_entry(P, position(Xp, Yp)) : position(X, Y) & not (X == Xp & Y == Yp) <-
+    .print("Requesting entry to parking lot ", P, " at ", position(X, Y));
     .send(P, askOne, entry_status(Status), Answer, 3000);
-    !process_entry_response(Answer, P).
+    !process_entry_response(Answer, P, position(Xp, Yp)).
 
-+!process_entry_response(entry_status(granted), P) <-
++!request_entry(P, position(Xp, Yp)) <-
+    .print("Already at parking lot ", P, " at ", position(Xp, Yp)).
+
++!process_entry_response(entry_status(granted), P, position(_, _)) <-
     .print("Successfully entered parking lot ", P).
 
-+!process_entry_response(entry_status(denied), P) <-
++!process_entry_response(entry_status(denied), P, position(_, _)) <-
     .print("Entry denied for parking lot ", P);
     !request_parking.
 
-+!process_entry_response(timeout, P) <- // TODO to improve
++!process_entry_response(timeout, P, position(Xp, Yp)) <-
     .print("Parking agent ", P, " unavailable; retrying in 0.5s");
     .wait(500);
-    !request_entry(P).
+    !request_entry(P, position(Xp, Yp)).
 
-+!process_entry_response(Error, P) <- // TODO to improve
++!process_entry_response(Error, P, position(Xp, Yp)) <- // TODO to improve
     .print("Error occurred while contacting parking agent ", P, ": ", Error);
     .wait(500);
-    !request_entry(P).
+    !request_entry(P, position(Xp, Yp)).
