@@ -10,9 +10,11 @@ import parking.view.CityGUI;
 import parking.view.CityView;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ParkingEnvironment extends Environment {
 
+    private static final long ACTION_DELAY_IN_MS = 1000L;
     private static final String MOVE_ACTION = "move";
     private static final String ENTER_ACTION = "enter_driver";
 
@@ -38,13 +40,18 @@ public class ParkingEnvironment extends Environment {
     }
 
     private Collection<Literal> getDriverAgentPercepts(final DriverId driverId) {
-        return List.of(
-                Literal.parseLiteral(String.format("area(%s)", this.city.getDriverArea(driverId))),
-                Literal.parseLiteral(String.format("position(%d, %d)",
-                        this.city.getDriverPosition(driverId).x(),
-                        this.city.getDriverPosition(driverId).y()
-                ))
-        );
+        return Stream.concat(
+                Stream.of(
+                        Literal.parseLiteral(String.format("position(%d, %d)",
+                                this.city.getDriverPosition(driverId).x(),
+                                this.city.getDriverPosition(driverId).y()
+                        )),
+                        Literal.parseLiteral(String.format("current_area(%s)",
+                                this.city.getDriverCurrentArea(driverId)))
+                ),
+                this.city.getDriverNearestArea(driverId).stream().map(areaId ->
+                        Literal.parseLiteral(String.format("nearest_area(%s)", areaId)))
+        ).toList();
     }
 
     private Collection<Literal> getParkingAgentPercepts(final ParkingLotId parkingLotId) {
@@ -67,7 +74,7 @@ public class ParkingEnvironment extends Environment {
         };
         this.updateView();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(ACTION_DELAY_IN_MS);
         } catch (final InterruptedException ignored) {}
         return success;
     }
