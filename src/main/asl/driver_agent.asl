@@ -31,18 +31,19 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     !request_parking.
 
 // ========== Request parking to Area Agent of current area ==========
+// Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
-+!request_parking : current_area(A) <-
++!request_parking : current_area(A) & position(X, Y) & required_availability(R) <-
     .my_name(N);
     .print("Driver ", N, " requesting parking to area ", A);
-    .send(A, askOne, available_parking(P, Position), Answer, 3000);
+    .send(A, askOne, available_parking(position(X, Y), R, P, Position), Answer, 3000);
     !process_parking_response(Answer).
 
-+!process_parking_response(available_parking(none, _)) <-
++!process_parking_response(available_parking(_, _, none, _)) <-
     .print("No available parking found; contacting nearest area agent");
     !request_parking_to_nearest_area_agent.
 
-+!process_parking_response(available_parking(P, Position)) <-
++!process_parking_response(available_parking(_, _, P, Position)) <-
     .print("Going to parking lot ", P, " at ", Position);
     !go_to_parking_lot(P, Position).
 
@@ -57,11 +58,12 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     !request_parking.
 
 // ========== Request parking to Area Agent of nearest area ==========
+// Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
-+!request_parking_to_nearest_area_agent : nearest_area(A) <-
++!request_parking_to_nearest_area_agent : nearest_area(A) & position(X, Y) & required_availability(R) <-
     .my_name(N);
     .print("Driver ", N, " requesting parking to area ", A);
-    .send(A, askOne, available_parking(P, Position), Answer, 3000);
+    .send(A, askOne, available_parking(position(X, Y), R, P, Position), Answer, 3000);
     !process_parking_response_from_nearest_area_agent(Answer).
 
 +!request_parking_to_nearest_area_agent <-
@@ -69,12 +71,12 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     .wait(500);
     !request_parking.
 
-+!process_parking_response_from_nearest_area_agent(available_parking(none, _)) <-
++!process_parking_response_from_nearest_area_agent(available_parking(_, _, none, _)) <-
     .print("No available parking found; retrying in 0.5s to area agent of current area");
     .wait(500);
     !request_parking.
 
-+!process_parking_response_from_nearest_area_agent(available_parking(P, Position)) <-
++!process_parking_response_from_nearest_area_agent(available_parking(_, _, P, Position)) <-
     .print("Going to parking lot ", P, " at ", Position);
     !go_to_parking_lot(P, Position).
 

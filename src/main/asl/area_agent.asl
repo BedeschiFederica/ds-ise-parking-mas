@@ -1,4 +1,30 @@
 // ====================
+// BELIEFS AND RULES
+// ====================
+
+/*
+ * distance(+Position1, +Position2, -Distance)
+ * Computes the Manhattan distance between two positions.
+ */
+distance(position(X1, Y1), position(X2, Y2), math.abs(X1 - X2) + math.abs(Y1 - Y2)).
+
+/*
+ * closest_parking(+DriverPosition, +RequiredAvailability, -P, -ParkingPosition)
+ * Finds the closest parking P (at position ParkingPosition) to DriverPosition with at least RequiredAvailability
+ * available spots.
+ */
+closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) :-
+    parking_status(P, ParkingPosition, Availability) &
+    Availability >= RequiredAvailability &
+    distance(DriverPosition, ParkingPosition, Distance) &
+    not (
+        parking_status(OtherP, OtherPosition, OtherAvailability) &
+        OtherAvailability >= RequiredAvailability &
+        distance(DriverPosition, OtherPosition, OtherDistance) &
+        OtherDistance < Distance
+    ).
+
+// ====================
 // PLANS
 // ====================
 
@@ -36,8 +62,11 @@
 // TEST-GOAL PLANS
 // ====================
 
-+?available_parking(P, Position)[source(_)] : parking_status(P, Position, A) & A > 0 <-
-    .print("Available parking found: ", P, " at ", Position). // random parking selection; TODO specific selection
+// available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
++?available_parking(DriverPosition, RequiredAvailability, P, ParkingPosition)
+        : closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) <-
+    .print("Closest available parking found: ", P, " at ", ParkingPosition).
 
-+?available_parking(none, none)[source(_)] : parking_status(_, _, _) <-
+// available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
++?available_parking(_, _, none, none) : parking_status(_, _, _) <-
     .print("No available parking found").
