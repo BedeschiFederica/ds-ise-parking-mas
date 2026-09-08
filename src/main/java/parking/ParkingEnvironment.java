@@ -14,9 +14,10 @@ import java.util.stream.Stream;
 
 public class ParkingEnvironment extends Environment {
 
+    static final String MOVE_ACTION = "move";
+    static final String ENTER_ACTION = "enter_driver";
+
     private static final long ACTION_DELAY_IN_MS = 1000L;
-    private static final String MOVE_ACTION = "move";
-    private static final String ENTER_ACTION = "enter_driver";
 
     private City city;
     private CityView view;
