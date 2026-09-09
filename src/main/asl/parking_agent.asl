@@ -33,3 +33,10 @@
 @[atomic]
 +?entry_status(denied)[source(D)] <-
     .print("Entry denied for driver ", D, "; no available spots.").
+
+@[atomic]
++?exit(Direction)[source(D)] : available(A) <-
+    .print("Processing exit request from driver ", D, "; available spots: ", A);
+    exit_driver(D, Direction);
+    .print("Driver ", D, " exited ", Direction, "; available spots: ", A + 1);
+    -+available(A + 1).

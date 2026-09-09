@@ -5,17 +5,26 @@
 adjacent(position(X1, Y1), position(X2, Y2)) :-
     (X1 == X2 & (Y1 == Y2 + 1 | Y1 == Y2 - 1)) | (Y1 == Y2 & (X1 == X2 + 1 | X1 == X2 - 1)).
 
+direction(position(FromX, FromY), position(ToX, ToY), north) :- FromX > ToX.
+direction(position(FromX, FromY), position(ToX, ToY), south) :- FromX < ToX.
+direction(position(FromX, FromY), position(ToX, ToY), east) :- FromY < ToY.
+direction(position(FromX, FromY), position(ToX, ToY), west) :- FromY > ToY.
+
+random_between(X, Y, X + math.floor(R * (Y - X + 1))) :- .random(R).
+
 // ====================
 // PERCEPTS
 // ====================
 
++position(X, Y) : not home(_) <-
+    .print("Driver is at home at (", X, ", ", Y, ")");
+    +home(position(X, Y)).
+
 +position(X, Y) <-
-    .my_name(N);
-    .print("Driver ", N, " at (", X, ", ", Y, ")").
+    .print("Driver at (", X, ", ", Y, ")").
 
 +current_area(A) <-
-    .my_name(N);
-    .print("Driver ", N, " in area ", A).
+    .print("Driver is in area ", A).
 
 +nearest_area(A) <-
     .my_name(N);
@@ -94,26 +103,13 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
 
 +!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & adjacent(position(X, Y), position(Xp, Yp)) <-
     .print("Arrived near parking lot ", P, " at ", position(Xp, Yp), "; current position: ", position(X, Y));
+    -+entry_position(X, Y);
     !request_entry(P, position(Xp, Yp)).
 
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & X > Xp <-
-    move(north);
-    .print("Going north");
-    !go_to_parking_lot(P, position(Xp, Yp)).
-
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & X < Xp <-
-    move(south);
-    .print("Going south");
-    !go_to_parking_lot(P, position(Xp, Yp)).
-
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & Y < Yp <-
-    move(east);
-    .print("Going east");
-    !go_to_parking_lot(P, position(Xp, Yp)).
-
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & Y > Yp <-
-    move(west);
-    .print("Going west");
++!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) <-
+    ?direction(position(X, Y), position(Xp, Yp), Direction);
+    move(Direction);
+    .print("Going ", Direction);
     !go_to_parking_lot(P, position(Xp, Yp)).
 
 -!go_to_parking_lot(P, position(Xp, Yp)) <-
@@ -129,12 +125,14 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     !process_entry_response(Answer, P, position(Xp, Yp)).
 
 +!request_entry(P, position(Xp, Yp)) <-
-    .print("Already at parking lot ", P, " at ", position(Xp, Yp)).
+    .print("Already at parking lot ", P, " at ", position(Xp, Yp));
+    !stay_in_parking_lot(P).
 
-+!process_entry_response(entry_status(granted), P, position(_, _)) <-
-    .print("Successfully entered parking lot ", P).
++!process_entry_response(entry_status(granted), P, _) <-
+    .print("Successfully entered parking lot ", P);
+    !stay_in_parking_lot(P).
 
-+!process_entry_response(entry_status(denied), P, position(_, _)) <-
++!process_entry_response(entry_status(denied), P, _) <-
     .print("Entry denied for parking lot ", P);
     !request_parking.
 
@@ -147,3 +145,53 @@ adjacent(position(X1, Y1), position(X2, Y2)) :-
     .print("Error occurred while contacting parking agent ", P, ": ", Error);
     .wait(500);
     !request_entry(P, position(Xp, Yp)).
+
+// ========== Leave parking lot ==========
+
++!stay_in_parking_lot(P) <-
+    ?random_between(10000, 20000, Ms);
+    .print("Staying in parking lot ", P, " for ", Ms / 1000, " seconds");
+    .wait(Ms);
+    !leave_parking_lot(P).
+
++!leave_parking_lot(P) : position(X, Y) & entry_position(EntryX, EntryY) & not (X == EntryX & Y == EntryY) <-
+    ?direction(position(X, Y), position(EntryX, EntryY), Direction);
+    .print("Requesting exit from parking lot ", P, " in direction ", Direction);
+    .send(P, askOne, exit(Direction), Answer, 3000);
+    !process_exit_response(Answer, P).
+
++!leave_parking_lot(P) <-
+    .print("Already exited from parking lot ", P);
+    .print("Going home");
+    !go_home.
+
++!process_exit_response(exit(_), P) <-
+    .print("Successfully exited parking lot ", P);
+    .print("Going home");
+    !go_home.
+
++!process_exit_response(timeout, P) <-
+    .print("Parking agent ", P, " unavailable; retrying in 0.5s");
+    .wait(500);
+    !leave_parking_lot(P).
+
++!process_exit_response(Error, P) <- // TODO to improve
+    .print("Error occurred while contacting parking agent ", P, ": ", Error);
+    .wait(500);
+    !leave_parking_lot(P).
+
+// ========== Go home ==========
+
++!go_home : position(X, Y) & home(position(HomeX, HomeY)) & X == HomeX & Y == HomeY <-
+    .print("Arrived home").
+
++!go_home : position(X, Y) & home(HomePosition) <-
+    ?direction(position(X, Y), HomePosition, Direction);
+    move(Direction);
+    .print("Going ", Direction);
+    !go_home.
+
+-!go_home <-
+    .print("Failed to move while going home; retrying in 0.5s");
+    .wait(500);
+    !go_home.
