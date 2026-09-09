@@ -102,7 +102,7 @@ public class CityImplTest {
     }
 
     @Test
-    @DisplayName("Test that the city moves a driver correctly")
+    @DisplayName("Test that a driver moves correctly")
     public void testDriverMovesCorrectly() {
         assertTrue(this.city.moveDriver(DRIVER_ID, Direction.SOUTH));
         assertEquals(new Position(DRIVER_POSITION.x() + 1, DRIVER_POSITION.y()),
@@ -110,17 +110,28 @@ public class CityImplTest {
     }
 
     @Test
-    @DisplayName("Test that the city prevents a driver from moving out of bounds")
+    @DisplayName("Test that a driver can't move out of bounds")
     public void testDriverCannotMoveOutOfCityBounds() {
         assertTrue(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
         assertFalse(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
     }
 
     @Test
+    @DisplayName("Test that a driver can't move when inside a parking lot")
+    public void testDriverCannotMoveWhenInsideAParkingLot() {
+        assertTrue(this.enter());
+        assertFalse(this.city.moveDriver(DRIVER_ID, Direction.EAST));
+    }
+
+    private boolean enter() {
+        this.city.moveDriver(DRIVER_ID, Direction.NORTH);
+        return this.city.enter(DRIVER_ID, PARKING_LOT_ID);
+    }
+
+    @Test
     @DisplayName("Test that a driver enters a parking lot correctly")
     public void testDriverEntersParkingLot() {
-        this.city.moveDriver(DRIVER_ID, Direction.NORTH);
-        assertTrue(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
+        assertTrue(this.enter());
         assertEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
     }
 
@@ -129,6 +140,29 @@ public class CityImplTest {
     public void testDriverCannotEnterParkingLotIfNotAdjacent() {
         assertFalse(this.city.enter(DRIVER_ID, PARKING_LOT_ID));
         assertNotEquals(PARKING_LOT_POSITION, this.city.getDriverPosition(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that a driver exits from a parking lot correctly")
+    public void testDriverExitsParkingLot() {
+        assertTrue(this.enter());
+        assertTrue(this.city.exit(DRIVER_ID, PARKING_LOT_ID, Direction.EAST));
+        assertEquals(new Position(PARKING_LOT_POSITION.x(), PARKING_LOT_POSITION.y() + 1),
+                this.city.getDriverPosition(DRIVER_ID));
+    }
+
+    @Test
+    @DisplayName("Test that a driver can't exit from a parking lot when not inside it")
+    public void testDriverCannotExitParkingLotWhenNotInsideIt() {
+        assertFalse(this.city.exit(DRIVER_ID, PARKING_LOT_ID, Direction.EAST));
+    }
+
+    @Test
+    @DisplayName("Test that a driver can't move out of the city bounds when exiting from a parking lot")
+    public void testDriverCannotMoveOutOfBoundsWhenExitingParkingLot() {
+        assertTrue(this.enter());
+        assertFalse(this.city.exit(DRIVER_ID, PARKING_LOT_ID, Direction.NORTH));
+        assertFalse(this.city.exit(DRIVER_ID, PARKING_LOT_ID, Direction.WEST));
     }
 
     @Test

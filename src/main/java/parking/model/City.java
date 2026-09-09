@@ -75,6 +75,16 @@ public interface City {
     boolean enter(DriverId driverId, ParkingLotId parkingLotId);
 
     /**
+     * Makes the specified driver exit the specified parking lot in the specified direction.
+     *
+     * @param driverId the id of the driver
+     * @param parkingLotId the id of the parking lot
+     * @param direction the direction in which to move the driver
+     * @return true if the driver exited successfully, false otherwise.
+     */
+    boolean exit(DriverId driverId, ParkingLotId parkingLotId, Direction direction);
+
+    /**
      * Gets the occupiers of the city.
      *
      * @return a map containing each position and its occupiers.

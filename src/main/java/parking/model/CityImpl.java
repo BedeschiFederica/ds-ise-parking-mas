@@ -103,11 +103,15 @@ public class CityImpl implements City {
     public synchronized boolean moveDriver(final DriverId id, final Direction direction) {
         this.requireDriverExistence(id);
         final Position newPosition = this.drivers.get(id).move(direction);
-        if (this.isOutOfBounds(newPosition)) {
+        if (this.isOutOfBounds(newPosition) || this.isDriverInAParkingLot(id)) {
             return false;
         }
         this.drivers.replace(id, newPosition);
         return true;
+    }
+
+    private boolean isDriverInAParkingLot(final DriverId id) {
+        return this.parkingLots.values().stream().anyMatch(parkingPos -> parkingPos.equals(this.drivers.get(id)));
     }
 
     @Override
@@ -126,6 +130,19 @@ public class CityImpl implements City {
         final Position parkingPos = this.parkingLots.get(parkingLotId);
         return (driverPos.x() == parkingPos.x() && Math.abs(driverPos.y() - parkingPos.y()) == 1)
                 || (driverPos.y() == parkingPos.y() && Math.abs(driverPos.x() - parkingPos.x()) == 1);
+    }
+
+    @Override
+    public synchronized boolean exit(final DriverId driverId, final ParkingLotId parkingLotId,
+                                     final Direction direction) {
+        this.requireDriverExistence(driverId);
+        this.requireParkingLotExistence(parkingLotId);
+        final Position newPosition = this.drivers.get(driverId).move(direction);
+        if (!this.drivers.get(driverId).equals(this.parkingLots.get(parkingLotId)) || this.isOutOfBounds(newPosition)) {
+            return false;
+        }
+        this.drivers.replace(driverId, newPosition);
+        return true;
     }
 
     @Override
