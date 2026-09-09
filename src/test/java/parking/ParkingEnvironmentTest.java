@@ -54,11 +54,6 @@ public class ParkingEnvironmentTest {
         assertTrue(this.environment.getPercepts("a1").isEmpty());
     }
 
-    private Structure createMoveAction(final Direction direction) {
-        return ASSyntax.createStructure(ParkingEnvironment.MOVE_ACTION,
-                ASSyntax.createAtom(direction.toString().toLowerCase()));
-    }
-
     private Position getPosition(final String agentName) {
         return this.environment.getPercepts(agentName).stream()
                 .filter(percept -> percept.toString().matches(POSITION_REGEX))
@@ -69,11 +64,20 @@ public class ParkingEnvironmentTest {
                 .orElseThrow(() -> new IllegalStateException("Position percept not found"));
     }
 
+    private Structure createMoveAction(final Direction direction) {
+        return ASSyntax.createStructure(ParkingEnvironment.MOVE_ACTION,
+                ASSyntax.createAtom(direction.toString().toLowerCase()));
+    }
+
+    private boolean executeMoveAction(final String driver, final Direction direction) {
+        return this.environment.executeAction(driver, this.createMoveAction(direction));
+    }
+
     @Test
     @DisplayName("Test that executing a move action updates the driver position correctly")
     public void testExecuteMoveAction() {
         final Position driverPosition = this.getPosition(DRIVER_AGENT);
-        assertTrue(this.environment.executeAction(DRIVER_AGENT, this.createMoveAction(Direction.EAST)));
+        assertTrue(this.executeMoveAction(DRIVER_AGENT, Direction.EAST));
         final Position newDriverPosition = this.getPosition(DRIVER_AGENT);
         assertEquals(driverPosition.move(Direction.EAST), newDriverPosition);
     }
@@ -81,7 +85,14 @@ public class ParkingEnvironmentTest {
     @Test
     @DisplayName("Test that executing a move action returns false when moving out of bounds")
     public void testExecutingMoveActionReturnsFalseWhenMovingOutOfBounds() {
-        assertFalse(this.environment.executeAction(DRIVER_AGENT, this.createMoveAction(Direction.NORTH)));
+        assertFalse(this.executeMoveAction(DRIVER_AGENT, Direction.NORTH));
+    }
+
+    @Test
+    @DisplayName("Test that executing a move action returns false when the driver is inside a parking lot")
+    public void testExecutingMoveActionReturnsFalseWhenDriverIsInsideAParkingLot() {
+        assertTrue(this.executeEnterAction(DRIVER_AGENT, PARKING_AGENT));
+        assertFalse(this.executeMoveAction(DRIVER_AGENT, Direction.EAST));
     }
 
     @Test
@@ -95,27 +106,71 @@ public class ParkingEnvironmentTest {
         return ASSyntax.createStructure(ParkingEnvironment.ENTER_ACTION, ASSyntax.createAtom(driver));
     }
 
+    private boolean executeEnterAction(final String driver, final String parking) {
+        return this.environment.executeAction(parking, this.createEnterAction(driver));
+    }
+
     @Test
     @DisplayName("Test that executing an enter action updates the driver position correctly")
     public void testExecuteEnterAction() {
-        assertTrue(this.environment.executeAction(PARKING_AGENT, this.createEnterAction(DRIVER_AGENT)));
+        assertTrue(this.executeEnterAction(DRIVER_AGENT, PARKING_AGENT));
         assertEquals(this.getPosition(PARKING_AGENT), this.getPosition(DRIVER_AGENT));
     }
 
     @Test
     @DisplayName("Test that executing an enter action returns false when the driver is not adjacent to the parking")
     public void testExecutingEnterActionReturnsFalseWhenDriverNotAdjacentToParking() {
-        assertFalse(this.environment.executeAction(PARKING_AGENT, this.createEnterAction("d2")));
+        assertFalse(this.executeEnterAction("d2", PARKING_AGENT));
     }
 
     @Test
     @DisplayName("Test that executing an enter action fails when the agents are not valid")
     public void testFailWhenExecutingEnterActionWithInvalidAgents() {
         assertAll(() -> {
+            assertThrows(IllegalArgumentException.class, () -> this.executeEnterAction(PARKING_AGENT, PARKING_AGENT));
+            assertThrows(IllegalArgumentException.class, () -> this.executeEnterAction(DRIVER_AGENT, DRIVER_AGENT));
+        });
+    }
+
+    private Structure createExitAction(final String driver, final Direction direction) {
+        return ASSyntax.createStructure(ParkingEnvironment.EXIT_ACTION,
+                ASSyntax.createAtom(driver), ASSyntax.createAtom(direction.toString().toLowerCase()));
+    }
+
+    private boolean executeExitAction(final String driver, final String parking, final Direction direction) {
+        return this.environment.executeAction(parking, this.createExitAction(driver, direction));
+    }
+
+    @Test
+    @DisplayName("Test that executing an exit action updates the driver position correctly")
+    public void testExecuteExitAction() {
+        this.executeEnterAction(DRIVER_AGENT, PARKING_AGENT);
+        assertTrue(this.executeExitAction(DRIVER_AGENT, PARKING_AGENT, Direction.EAST));
+        assertEquals(new Position(this.getPosition(PARKING_AGENT).x(), this.getPosition(PARKING_AGENT).y() + 1),
+                this.getPosition(DRIVER_AGENT));
+    }
+
+    @Test
+    @DisplayName("Test that executing an exit action returns false when the driver is not inside the parking lot")
+    public void testExecutingExitActionReturnsFalseWhenNotInsideParkingLot() {
+        assertFalse(this.executeExitAction(DRIVER_AGENT, PARKING_AGENT, Direction.EAST));
+    }
+
+    @Test
+    @DisplayName("Test that executing an exit action returns false when the driver would move out of bounds")
+    public void testExecutingExitActionReturnsFalseWhenMovingOutOfBounds() {
+        this.executeEnterAction(DRIVER_AGENT, PARKING_AGENT);
+        assertFalse(this.executeExitAction(DRIVER_AGENT, PARKING_AGENT, Direction.WEST));
+    }
+
+    @Test
+    @DisplayName("Test that executing an exit action fails when the agents are not valid")
+    public void testFailWhenExecutingExitActionWithInvalidAgents() {
+        assertAll(() -> {
             assertThrows(IllegalArgumentException.class, () ->
-                    this.environment.executeAction(PARKING_AGENT, this.createEnterAction(PARKING_AGENT)));
+                    this.executeExitAction(PARKING_AGENT, PARKING_AGENT, Direction.EAST));
             assertThrows(IllegalArgumentException.class, () ->
-                    this.environment.executeAction(DRIVER_AGENT, this.createEnterAction(DRIVER_AGENT)));
+                    this.executeExitAction(DRIVER_AGENT, DRIVER_AGENT, Direction.EAST));
         });
     }
 }

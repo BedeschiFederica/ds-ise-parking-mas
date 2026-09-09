@@ -1,7 +1,6 @@
 package parking;
 
-import jason.asSyntax.Literal;
-import jason.asSyntax.Structure;
+import jason.asSyntax.*;
 import jason.environment.Environment;
 
 import parking.common.Direction;
@@ -16,6 +15,7 @@ public class ParkingEnvironment extends Environment {
 
     static final String MOVE_ACTION = "move";
     static final String ENTER_ACTION = "enter_driver";
+    static final String EXIT_ACTION = "exit_driver";
 
     private static final long ACTION_DELAY_IN_MS = 1000L;
 
@@ -68,9 +68,12 @@ public class ParkingEnvironment extends Environment {
     public boolean executeAction(final String agentName, final Structure action) {
         final boolean success = switch (action.getFunctor()) {
             case MOVE_ACTION ->
-                    this.city.moveDriver(new DriverId(agentName), Direction.fromString(action.getTerm(0).toString()));
+                    this.city.moveDriver(new DriverId(agentName), this.getDirectionFrom(action.getTerm(0)));
             case ENTER_ACTION ->
                     this.city.enter(new DriverId(action.getTerm(0).toString()), new ParkingLotId(agentName));
+            case EXIT_ACTION ->
+                    this.city.exit(new DriverId(action.getTerm(0).toString()), new ParkingLotId(agentName),
+                            this.getDirectionFrom(action.getTerm(1)));
             default -> throw new IllegalArgumentException("Unknown action: " + action);
         };
         this.updateView();
@@ -82,5 +85,9 @@ public class ParkingEnvironment extends Environment {
 
     private void updateView() {
         this.view.update(this.city.getOccupiers());
+    }
+
+    private Direction getDirectionFrom(final Term term) {
+        return Direction.fromString(term.toString());
     }
 }
