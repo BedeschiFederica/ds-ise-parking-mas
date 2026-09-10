@@ -83,9 +83,15 @@ public class ParkingEnvironmentTest {
     }
 
     @Test
-    @DisplayName("Test that executing a move action returns false when moving out of bounds")
+    @DisplayName("Test that executing a move action returns false when trying to move out of bounds")
     public void testExecutingMoveActionReturnsFalseWhenMovingOutOfBounds() {
         assertFalse(this.executeMoveAction(DRIVER_AGENT, Direction.NORTH));
+    }
+
+    @Test
+    @DisplayName("Test that executing a move action returns false when trying to directly move into a parking lot")
+    public void testExecutingMoveActionReturnsFalseWhenMovingIntoParkingLot() {
+        assertFalse(this.executeMoveAction(DRIVER_AGENT, Direction.WEST));
     }
 
     @Test

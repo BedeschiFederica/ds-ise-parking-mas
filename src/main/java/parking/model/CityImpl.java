@@ -103,7 +103,7 @@ public class CityImpl implements City {
     public synchronized boolean moveDriver(final DriverId id, final Direction direction) {
         this.requireDriverExistence(id);
         final Position newPosition = this.drivers.get(id).move(direction);
-        if (this.isOutOfBounds(newPosition) || this.isDriverInAParkingLot(id)) {
+        if (this.isOutOfBounds(newPosition) || this.containsParking(newPosition) || this.isDriverInAParkingLot(id)) {
             return false;
         }
         this.drivers.replace(id, newPosition);
@@ -111,7 +111,11 @@ public class CityImpl implements City {
     }
 
     private boolean isDriverInAParkingLot(final DriverId id) {
-        return this.parkingLots.values().stream().anyMatch(parkingPos -> parkingPos.equals(this.drivers.get(id)));
+        return this.containsParking(this.drivers.get(id));
+    }
+
+    private boolean containsParking(final Position position) {
+        return this.parkingLots.values().stream().anyMatch(parkingPos -> parkingPos.equals(position));
     }
 
     @Override

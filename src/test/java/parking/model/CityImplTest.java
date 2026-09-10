@@ -117,6 +117,13 @@ public class CityImplTest {
     }
 
     @Test
+    @DisplayName("Test that a driver can't directly move into a parking lot")
+    public void testDriverCannotMoveIntoAParkingLot() {
+        assertTrue(this.city.moveDriver(DRIVER_ID, Direction.NORTH));
+        assertFalse(this.city.moveDriver(DRIVER_ID, Direction.WEST));
+    }
+
+    @Test
     @DisplayName("Test that a driver can't move when inside a parking lot")
     public void testDriverCannotMoveWhenInsideAParkingLot() {
         assertTrue(this.enter());
