@@ -53,7 +53,8 @@ closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) :-
     .print("Parking agent ", P, " at ", Position, " has ", Available, " available spots");
     +parking_status(P, Position, Available).
 
-+available(A)[source(P)] : parking_status(P, Position, OldA) <-
+// Received from parking_agent
++!update_availability(P, A) : parking_status(P, Position, OldA) <-
     -parking_status(P, Position, OldA);
     +parking_status(P, Position, A);
     .print("Area agent updated parking info for ", P, " at ", Position, " to ", A, " available spots").

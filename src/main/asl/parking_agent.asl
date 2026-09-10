@@ -3,8 +3,7 @@
 // ====================
 
 +position(X, Y) : available(A) <-
-    .my_name(N);
-    .print("Parking agent ", N, " at (", X, ", ", Y, ") with available spots ", A).
+    .print("Parking agent at (", X, ", ", Y, ") with ", A, " available spots").
 
 // ====================
 // PLANS
@@ -14,7 +13,9 @@
     .print("Parking agent started").
 
 +available(Spots) : area(Agent) <-
-    .send(Agent, tell, available(Spots)).
+    .println("Sending availability update to area agent ", Agent, " with ", Spots, " available spots");
+    .my_name(P);
+    .send(Agent, achieve, update_availability(P, Spots)).
 
 // ====================
 // TEST-GOAL PLANS
