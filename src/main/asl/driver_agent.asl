@@ -2,15 +2,54 @@
 // BELIEFS AND RULES
 // ====================
 
+/*
+ * adjacent(+Position1, +Position2)
+ * Checks if two positions are adjacent (i.e., one step apart in any direction).
+ */
 adjacent(position(X1, Y1), position(X2, Y2)) :-
     (X1 == X2 & (Y1 == Y2 + 1 | Y1 == Y2 - 1)) | (Y1 == Y2 & (X1 == X2 + 1 | X1 == X2 - 1)).
 
-direction(position(FromX, FromY), position(ToX, ToY), north) :- FromX > ToX.
-direction(position(FromX, FromY), position(ToX, ToY), south) :- FromX < ToX.
-direction(position(FromX, FromY), position(ToX, ToY), east) :- FromY < ToY.
-direction(position(FromX, FromY), position(ToX, ToY), west) :- FromY > ToY.
+/*
+ * arrived(+ArrivalCondition, +DriverPosition, +DestinationPosition)
+ * Checks if a driver has arrived at a destination based on the arrival condition.
+ */
+arrived(adjacent, position(X, Y), position(Xd, Yd)) :- adjacent(position(X, Y), position(Xd, Yd)).
+arrived(exact, position(X, Y), position(Xd, Yd)) :- X == Xd & Y == Yd.
 
-random_between(X, Y, X + math.floor(R * (Y - X + 1))) :- .random(R).
+/*
+ * directions(+FromPosition, +ToPosition, -PrimaryDirection, -SecondaryDirection)
+ * Determines the directions to move from one position to another.
+ */
+directions(position(FromX, FromY), position(ToX, ToY), north, east) :- FromX > ToX & FromY < ToY.
+directions(position(FromX, FromY), position(ToX, ToY), north, west) :- FromX > ToX.
+directions(position(FromX, FromY), position(ToX, ToY), south, east) :- FromX < ToX & FromY < ToY.
+directions(position(FromX, FromY), position(ToX, ToY), south, west) :- FromX < ToX.
+directions(position(FromX, FromY), position(ToX, ToY), east, north) :- FromY < ToY.
+directions(position(FromX, FromY), position(ToX, ToY), west, north).
+
+/*
+ * opposite(+Direction, -OppositeDirection)
+ * Determines the opposite direction of a given direction.
+ */
+opposite(north, south).
+opposite(south, north).
+opposite(east, west).
+opposite(west, east).
+
+/*
+ * preferred_directions(+FromPosition, +ToPosition, -Directions)
+ * Determines the preferred directions to move from one position to another.
+ */
+preferred_directions(FromPosition, ToPosition, [Primary, Secondary, SecondaryOpposite, PrimaryOpposite]) :-
+    directions(FromPosition, ToPosition, Primary, Secondary) &
+    opposite(Secondary, SecondaryOpposite) &
+    opposite(Primary, PrimaryOpposite).
+
+/*
+ * random_between(+X, +Y, -RandomInt)
+ * Generates a random integer between X and Y (inclusive).
+ */
+random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
 
 // ====================
 // PERCEPTS
@@ -101,21 +140,61 @@ random_between(X, Y, X + math.floor(R * (Y - X + 1))) :- .random(R).
 
 // ========== Go to parking lot ==========
 
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) & adjacent(position(X, Y), position(Xp, Yp)) <-
-    .print("Arrived near parking lot ", P, " at ", position(Xp, Yp), "; current position: ", position(X, Y));
++!go_to_parking_lot(P, ParkingPosition) <-
+    !navigate_to(ParkingPosition, adjacent);
+    ?position(X, Y);
+    .print("Arrived near parking lot ", P, " at ", ParkingPosition, "; current position: ", position(X, Y));
     -+entry_position(X, Y);
-    !request_entry(P, position(Xp, Yp)).
+    !request_entry(P, ParkingPosition).
 
-+!go_to_parking_lot(P, position(Xp, Yp)) : position(X, Y) <-
-    ?direction(position(X, Y), position(Xp, Yp), Direction);
+// ========== Navigation ==========
+
++!navigate_to(DestinationPosition, ArrivalCondition) : position(X, Y)
+        & arrived(ArrivalCondition, position(X, Y), DestinationPosition) <-
+    true.
+
++!navigate_to(DestinationPosition, ArrivalCondition) : position(X, Y) <-
+    ?preferred_directions(position(X, Y), DestinationPosition, Directions);
+    .print("Preferred directions: ", Directions);
+    !try_direction(Directions, DestinationPosition, ArrivalCondition).
+
++!try_direction([Direction | AlternativeDirections], DestinationPosition, ArrivalCondition) <-
+    .print("Trying ", Direction);
     move(Direction);
-    .print("Going ", Direction);
-    !go_to_parking_lot(P, position(Xp, Yp)).
+    !navigate_to(DestinationPosition, ArrivalCondition).
 
--!go_to_parking_lot(P, position(Xp, Yp)) <-
-    .print("Failed to move to parking lot ", P, " at ", position(Xp, Yp), "; retrying in 0.5s");
+-!try_direction([Direction | AlternativeDirections], DestinationPosition, ArrivalCondition) <-
+    .print("Direction ", Direction, " blocked; trying another direction");
+    !avoid_obstacle(AlternativeDirections, Direction, DestinationPosition, ArrivalCondition).
+
++!avoid_obstacle([Direction | AlternativeDirections], PreviousDirection, DestinationPosition, ArrivalCondition) <-
+    .print("Avoiding obstacle: trying ", Direction);
+    move(Direction);
+    !continue_in_previous_direction(PreviousDirection, [Direction | AlternativeDirections], DestinationPosition,
+        ArrivalCondition).
+
+-!avoid_obstacle([Direction | AlternativeDirections], PreviousDirection, DestinationPosition, ArrivalCondition) <-
+    .print("Avoiding obstacle: direction ", Direction, " blocked; trying another direction");
+    !avoid_obstacle(AlternativeDirections, PreviousDirection, DestinationPosition, ArrivalCondition).
+
++!avoid_obstacle([], DestinationPosition, ArrivalCondition) <-
+    .print("No available direction to reach ", DestinationPosition,
+        "; retrying in 0.5s in case the moves failed due to communication errors");
     .wait(500);
-    !go_to_parking_lot(P, position(Xp, Yp)).
+    !navigate_to(DestinationPosition, ArrivalCondition).
+
++!continue_in_previous_direction(_, _, DestinationPosition, ArrivalCondition) : position(X, Y)
+        & arrived(ArrivalCondition, position(X, Y), DestinationPosition) <-
+    true.
+
++!continue_in_previous_direction(PreviousDirection, _, DestinationPosition, ArrivalCondition) <-
+    .print("Trying to continue in previous direction: ", PreviousDirection);
+    move(PreviousDirection);
+    !navigate_to(DestinationPosition, ArrivalCondition).
+
+-!continue_in_previous_direction(PreviousDirection, Directions, DestinationPosition, ArrivalCondition) <-
+    .print("Previous direction ", PreviousDirection, " blocked; trying another direction");
+    !avoid_obstacle(Directions, PreviousDirection, DestinationPosition, ArrivalCondition).
 
 // ========== Enter parking lot ==========
 
@@ -155,7 +234,7 @@ random_between(X, Y, X + math.floor(R * (Y - X + 1))) :- .random(R).
     !leave_parking_lot(P).
 
 +!leave_parking_lot(P) : position(X, Y) & entry_position(EntryX, EntryY) & not (X == EntryX & Y == EntryY) <-
-    ?direction(position(X, Y), position(EntryX, EntryY), Direction);
+    ?directions(position(X, Y), position(EntryX, EntryY), Direction, _);
     .print("Requesting exit from parking lot ", P, " in direction ", Direction);
     .send(P, askOne, exit(Direction), Answer, 3000);
     !process_exit_response(Answer, P).
@@ -182,16 +261,6 @@ random_between(X, Y, X + math.floor(R * (Y - X + 1))) :- .random(R).
 
 // ========== Go home ==========
 
-+!go_home : position(X, Y) & home(position(HomeX, HomeY)) & X == HomeX & Y == HomeY <-
-    .print("Arrived home").
-
 +!go_home : position(X, Y) & home(HomePosition) <-
-    ?direction(position(X, Y), HomePosition, Direction);
-    move(Direction);
-    .print("Going ", Direction);
-    !go_home.
-
--!go_home <-
-    .print("Failed to move while going home; retrying in 0.5s");
-    .wait(500);
-    !go_home.
+    !navigate_to(HomePosition, exact);
+    .print("Arrived home").
