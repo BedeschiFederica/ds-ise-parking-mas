@@ -47,7 +47,9 @@ closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) :-
     !process_parking_response(Answer, P).
 
 +!process_parking_response(timeout, P) <-
-    .print("Parking agent ", P, " unavailable").
+    .print("Parking agent ", P, " unavailable; retrying in 0.5s");
+    .wait(500);
+    !request_parking_info(P).
 
 +!process_parking_response(parking_info(Position, Available), P) <-
     .print("Parking agent ", P, " at ", Position, " has ", Available, " available spots");

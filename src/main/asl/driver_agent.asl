@@ -2,6 +2,9 @@
 // BELIEFS AND RULES
 // ====================
 
+max_retries(3).
+retries(0).
+
 /*
  * adjacent(+Position1, +Position2)
  * Checks if two positions are adjacent (i.e., one step apart in any direction).
@@ -82,35 +85,42 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
 // Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
 +!request_parking : current_area(A) & position(X, Y) & required_availability(R) <-
-    .my_name(N);
-    .print("Driver ", N, " requesting parking to area ", A);
+    .print("Requesting parking to area agent ", A);
     .send(A, askOne, available_parking(position(X, Y), R, P, Position), Answer, 3000);
     !process_parking_response(Answer).
 
 +!process_parking_response(available_parking(_, _, none, _)) <-
     .print("No available parking found; contacting nearest area agent");
+    -+retries(0);
     !request_parking_to_nearest_area_agent.
 
 +!process_parking_response(available_parking(_, _, P, Position)) <-
     .print("Going to parking lot ", P, " at ", Position);
+    -+retries(0);
     !go_to_parking_lot(P, Position).
 
-+!process_parking_response(timeout) <- // TODO to improve
++!process_parking_response(timeout) : retries(R) & max_retries(M) & R < M <-
     .print("Area agent unavailable; retrying in 0.5s");
     .wait(500);
+    -+retries(R + 1);
     !request_parking.
 
-+!process_parking_response(Error) <- // TODO to improve
-    .print("Error occurred while contacting area agent: ", Error);
-    .wait(500);
++!process_parking_response(Error) : retries(R) & max_retries(M) & R < M <-
+    .print("Error occurred while contacting area agent: ", Error, "; retrying in 2s");
+    .wait(2000);
+    -+retries(R + 1);
     !request_parking.
+
++!process_parking_response(Error) <-
+    .print("Couldn't contact area agent, max retries reached; contacting nearest area agent");
+    -+retries(0);
+    !request_parking_to_nearest_area_agent.
 
 // ========== Request parking to Area Agent of nearest area ==========
 // Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
 +!request_parking_to_nearest_area_agent : nearest_area(A) & position(X, Y) & required_availability(R) <-
-    .my_name(N);
-    .print("Driver ", N, " requesting parking to area ", A);
+    .print("Requesting parking to nearest area agent ", A);
     .send(A, askOne, available_parking(position(X, Y), R, P, Position), Answer, 3000);
     !process_parking_response_from_nearest_area_agent(Answer).
 
@@ -128,13 +138,13 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
     .print("Going to parking lot ", P, " at ", Position);
     !go_to_parking_lot(P, Position).
 
-+!process_parking_response_from_nearest_area_agent(timeout) <- // TODO
++!process_parking_response_from_nearest_area_agent(timeout) <-
     .print("Nearest area agent unavailable; retrying to current area agent in 0.5s");
     .wait(500);
     !request_parking.
 
-+!process_parking_response_from_nearest_area_agent(Error) <- // TODO
-    .print("Error occurred while contacting nearest area agent: ", Error);
++!process_parking_response_from_nearest_area_agent(Error) <-
+    .print("Error occurred while contacting nearest area agent: ", Error, "retrying to current area agent in 0.5s");
     .wait(500);
     !request_parking.
 
@@ -199,31 +209,41 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
 // ========== Enter parking lot ==========
 
 +!request_entry(P, position(Xp, Yp)) : position(X, Y) & not (X == Xp & Y == Yp) <-
-    .print("Requesting entry to parking lot ", P, " at ", position(X, Y));
+    .print("Requesting entry to parking lot ", P, " at ", position(Xp, Yp));
     .send(P, askOne, entry_status(Status), Answer, 3000);
     !process_entry_response(Answer, P, position(Xp, Yp)).
 
-+!request_entry(P, position(Xp, Yp)) <-
-    .print("Already at parking lot ", P, " at ", position(Xp, Yp));
++!request_entry(P, Position) <-
+    .print("Already at parking lot ", P, " at ", Position);
+    -+retries(0);
     !stay_in_parking_lot(P).
 
 +!process_entry_response(entry_status(granted), P, _) <-
     .print("Successfully entered parking lot ", P);
+    -+retries(0);
     !stay_in_parking_lot(P).
 
 +!process_entry_response(entry_status(denied), P, _) <-
     .print("Entry denied for parking lot ", P);
+    -+retries(0);
     !request_parking.
 
-+!process_entry_response(timeout, P, position(Xp, Yp)) <- // TODO to improve with n retries
++!process_entry_response(timeout, P, Position) : retries(R) & max_retries(M) & R < M <-
     .print("Parking agent ", P, " unavailable; retrying in 0.5s");
     .wait(500);
-    !request_entry(P, position(Xp, Yp)).
+    -+retries(R + 1);
+    !request_entry(P, Position).
 
-+!process_entry_response(Error, P, position(Xp, Yp)) <- // TODO to improve
-    .print("Error occurred while contacting parking agent ", P, ": ", Error);
-    .wait(500);
-    !request_entry(P, position(Xp, Yp)).
++!process_entry_response(Error, P, Position) : retries(R) & max_retries(M) & R < M <-
+    .print("Error occurred while contacting parking agent ", P, ": ", Error, "; retrying in 1s");
+    .wait(1000);
+    -+retries(R + 1);
+    !request_entry(P, Position).
+
++!process_entry_response(Error, P, _) <-
+    .print("Couldn't contact parking agent ", P, ", max retries reached; requesting new parking");
+    -+retries(0);
+    !request_parking.
 
 // ========== Leave parking lot ==========
 
@@ -254,9 +274,9 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
     .wait(500);
     !leave_parking_lot(P).
 
-+!process_exit_response(Error, P) <- // TODO to improve
-    .print("Error occurred while contacting parking agent ", P, ": ", Error);
-    .wait(500);
++!process_exit_response(Error, P) <-
+    .print("Error occurred while contacting parking agent ", P, ": ", Error, "; retrying in 1s");
+    .wait(1000);
     !leave_parking_lot(P).
 
 // ========== Go home ==========
