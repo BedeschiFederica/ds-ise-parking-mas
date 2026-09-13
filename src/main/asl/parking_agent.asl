@@ -9,9 +9,6 @@
 // PLANS
 // ====================
 
-+!start <-
-    .print("Parking agent started").
-
 +available(Spots) : area(Agent) <-
     .println("Sending availability update to area agent ", Agent, " with ", Spots, " available spots");
     .my_name(P);

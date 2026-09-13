@@ -69,17 +69,14 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
     .print("Driver is in area ", A).
 
 +nearest_area(A) <-
-    .my_name(N);
-    .print("Driver ", N, " nearest area: ", A).
+    .print("Driver nearest area: ", A).
 
 // ====================
 // PLANS
 // ====================
 
-+!start <-
-    .my_name(N);
-    .print("Driver agent ", N, " started");
-    !request_parking.
+// Initial goal
+!request_parking.
 
 // ========== Request parking to Area Agent of current area ==========
 // Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
@@ -157,7 +154,7 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
     -+entry_position(X, Y);
     !request_entry(P, ParkingPosition).
 
-// ========== Navigation ==========
+// ========== Navigate to a position ==========
 
 +!navigate_to(DestinationPosition, ArrivalCondition) : position(X, Y)
         & arrived(ArrivalCondition, position(X, Y), DestinationPosition) <-
@@ -165,11 +162,10 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
 
 +!navigate_to(DestinationPosition, ArrivalCondition) : position(X, Y) <-
     ?preferred_directions(position(X, Y), DestinationPosition, Directions);
-    .print("Preferred directions: ", Directions);
     !try_direction(Directions, DestinationPosition, ArrivalCondition).
 
 +!try_direction([Direction | AlternativeDirections], DestinationPosition, ArrivalCondition) <-
-    .print("Trying ", Direction);
+    .print("Trying to go ", Direction);
     move(Direction);
     !navigate_to(DestinationPosition, ArrivalCondition).
 

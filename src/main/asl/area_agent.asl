@@ -28,10 +28,12 @@ closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) :-
 // PLANS
 // ====================
 
-+!start <-
-    .my_name(N);
+// Initial goal
+!collect_all_parking_info.
+
++!collect_all_parking_info <-
     .findall(P, parking(P), Ps);
-    .print("Area agent ", N, " started; contains ", Ps);
+    .print("Area agent started; area contains parking lots ", Ps);
     !collect_parking_info(Ps).
 
 +!collect_parking_info([]).
@@ -41,8 +43,7 @@ closest_parking(DriverPosition, RequiredAvailability, P, ParkingPosition) :-
     !collect_parking_info(Ps).
 
 +!request_parking_info(P) <-
-    .my_name(N);
-    .print("Area ", N, " collects parking info from ", P);
+    .print("Area agent collects parking info from ", P);
     .send(P, askOne, parking_info(Position, Available), Answer, 3000);
     !process_parking_response(Answer, P).
 
