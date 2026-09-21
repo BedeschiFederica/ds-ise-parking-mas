@@ -77,9 +77,11 @@ public class ParkingEnvironment extends Environment {
             default -> throw new IllegalArgumentException("Unknown action: " + action);
         };
         this.updateView();
-        try {
-            Thread.sleep(ACTION_DELAY_IN_MS);
-        } catch (final InterruptedException ignored) {}
+        if (success) {
+            try {
+                Thread.sleep(ACTION_DELAY_IN_MS);
+            } catch (final InterruptedException ignored) {}
+        }
         return success;
     }
 
