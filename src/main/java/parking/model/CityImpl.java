@@ -25,7 +25,7 @@ public class CityImpl implements City {
         this.parkingLots = Map.copyOf(parkingLots);
         this.drivers = new ConcurrentHashMap<>(drivers);
         this.validatePositions();
-        System.out.println("Width: " + this.width + ", height: " + this.height);
+        System.out.println("Width: " + this.width + ". Height: " + this.height);
         System.out.println("Areas: " + this.areas);
         System.out.println("Parking Lots: " + this.parkingLots);
         System.out.println("Drivers: " + this.drivers);

@@ -78,7 +78,7 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
 // Initial goal
 !request_parking.
 
-// ========== Request parking to Area Agent of current area ==========
+// ========== Request parking from Area Agent of current area ==========
 // Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
 +!request_parking : current_area(A) & position(X, Y) & required_availability(R) <-
@@ -113,7 +113,7 @@ random_between(X, Y, math.floor(X) + math.floor(R * (Y - X + 1))) :- .random(R).
     -+retries(0);
     !request_parking_to_nearest_area_agent.
 
-// ========== Request parking to Area Agent of nearest area ==========
+// ========== Request parking from Area Agent of nearest area ==========
 // Protocol message: available_parking(+DriverPosition, +RequiredAvailability, -Parking, -ParkingPosition)
 
 +!request_parking_to_nearest_area_agent : nearest_area(A) & position(X, Y) & required_availability(R) <-
