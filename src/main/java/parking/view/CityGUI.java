@@ -33,8 +33,9 @@ public class CityGUI extends JFrame implements CityView {
             }
         }
         this.setContentPane(gridPanel);
-        this.setMinimumSize(new Dimension(400, 400));
+        this.setPreferredSize(new Dimension(500, 500));
         this.pack();
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     @Override
